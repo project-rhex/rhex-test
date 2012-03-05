@@ -1,0 +1,1 @@
+https://raw.github.com/projecthdata/hData/master/schemas/2009/06/root.xsd

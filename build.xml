@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="compile" name="hData Interoperability Testing Tool">
+
+    <property name="app.name" value="hdataTest"/>
+	
+    <property name="source.level" value="1.6"/>
+    <property location="src" name="src"/>
+    <property name="build" value="build"/>
+    <property location="${build}/classes" name="build.classes"/>
+    <property location="${build}/test/" name="test.classes"/>
+    <property location="testOutput/" name="testoutput"/>
+	
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+	
+    <path id="run.classpath">
+        <pathelement location="${build.classes}"/>
+        <pathelement location="resources"/>
+        <path refid="classpath"/>
+    </path>
+	
+    <target name="init">
+        <!-- Create the build directory if it doesn't exist -->
+        <mkdir dir="${build.classes}"/>
+    </target>
+	
+    <target depends="init" description="Compile the application." name="compile">
+        <javac debug="true" destdir="${build.classes}"
+            source="${source.level}" srcdir="${src}" target="${source.level}">
+            <classpath refid="classpath"/>
+            <compilerarg value="-Xlint:all,-path"/>
+        </javac>
+    </target>
+	
+    <target
+        description="Clean the output directory (start from scratch)." name="clean">
+        <delete dir="${build}"/>
+        <!--delete dir="${testoutput}" /-->
+    </target>
+	
+    <target depends="test" name="run"/>
+	
+    <target depends="compile" name="test">
+        <java classname="org.mitre.hdata.test.Loader"
+            classpathref="run.classpath" fork="true">
+            <jvmarg value="-Xmx64m"/>
+            <!--jvmarg value="-DproxyHost=gatekeeper.mitre.org" />
+		<jvmarg value="-DproxyPort=80" />		
+		<arg value="-v"/-->
+        </java>
+    </target>
+	
+</project>

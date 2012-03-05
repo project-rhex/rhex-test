@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+  <!--baseURL>https://hdata.herokuapp.com/records/1460</baseURL-->  
+  <baseURL>https://hdata.herokuapp.com/records/1547</baseURL>  
+  <!-- https://hdata.herokuapp.com/records/9999 -->
+  <invalidBaseURL>https://hdata.herokuapp.com/records/NotValid</invalidBaseURL>  
+  <proxy>	  
+	  <host>gatekeeper.mitre.org</host>
+	  <port>80</port>
+  </proxy>
+</configuration>
