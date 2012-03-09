@@ -153,7 +153,7 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		 </root>
 		 */
 
-		doc = getValidatingParser(context, bos, "<root",
+		Document doc = getValidatingParser(context, bos, "<root",
 				NAMESPACE_HDATA_SCHEMAS_2009_06_CORE, "schemas/root.xsd");
 		// System.out.println("XXX: xmlErrors=" + xmlErrors + " warnings=" + getWarnings().size());
 		// TODO: if xmlErrors != 0 then have warnings added to this test so are XML errors warnings or failed assertion ??
@@ -161,6 +161,10 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		assertFalse(fatalXmlError, "XML has a fatal XML error");
 		final Element root = doc.getRootElement();
 		assertEquals(NAMESPACE_HDATA_SCHEMAS_2009_06_CORE, root.getNamespace().getURI());
+
+		// only keep copy of the DOM if the test was successful if which case dependent tests may access it
+		this.doc = doc;
+
 		setStatus(StatusEnumType.SUCCESS);
 	}
 
