@@ -16,6 +16,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * 6.3 baseURL/root.xml
+ *
+ * 6.3.2 POST, PUT, DELETE operations MUST NOT be implemented.
+ *
+ * Status Code: 405
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:45 AM
  */
