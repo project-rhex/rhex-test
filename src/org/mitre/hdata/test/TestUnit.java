@@ -16,6 +16,7 @@ public interface TestUnit extends Comparable<TestUnit> {
 	static final String MIME_APPLICATION_ATOM_XML = "application/atom+xml";
 	static final String MIME_APPLICATION_XHTML = "application/xhtml+xml";
 	static final String MIME_APPLICATION_XML = "application/xml";
+	static final String MIME_APPLICATION_JSON = "application/json";
 	static final String MIME_TEXT_XML = "text/xml";
 	static final String MIME_TEXT_HTML = "text/html";
 
