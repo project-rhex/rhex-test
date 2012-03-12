@@ -1,6 +1,7 @@
 package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -8,6 +9,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.mitre.hdata.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -148,8 +151,8 @@ public class BaseUrlRootXml extends BaseXmlTest {
 			 ...
 			 <extensions>
 			 </extensions>
-			 <sections>
-			 </sections>
+			 <extensions>
+			 </extensions>
 		 </root>
 		 */
 
@@ -162,10 +165,46 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		final Element root = doc.getRootElement();
 		assertEquals(NAMESPACE_HDATA_SCHEMAS_2009_06_CORE, root.getNamespace().getURI());
 
+		checkRootDocument(root);
+
 		// only keep copy of the DOM if the test was successful if which case dependent tests may access it
 		this.doc = doc;
 
 		setStatus(StatusEnumType.SUCCESS);
+	}
+
+	private void checkRootDocument(Element root) {
+		final Namespace ns = Namespace.getNamespace(NAMESPACE_HDATA_SCHEMAS_2009_06_CORE);
+		Element extensionsElt = root.getChild("extensions", ns);
+		HashSet<String> extensions = new HashSet<String>();
+		if (extensionsElt != null) {
+			// verify HL7 V1.0 2.2 bullet item #8: /hrf:extensions/hrf:extension/@extensionId (xs:string, 1)
+			// This attribute contains a local identifier for the extension. It MUST be unique within the root document.
+			for(Object child : extensionsElt.getChildren("extension", ns)) {
+				if (!(child instanceof Element)) continue;
+				Element ext = (Element)child;
+				String id = StringUtils.trimToNull(ext.getAttributeValue("extensionId")); // required
+				if (id != null && !extensions.add(id)) {
+					addWarning("duplicate extensionId for " + id + " violates HL7 unique constraint");
+				}
+			}
+			// System.out.println("XXX: extensionIds=" + extensions); // debug
+		}
+		Element sections = root.getChild("sections", ns);
+		if (sections != null) {
+			// verify HL7 V1.0 2.2 bullet item #12:	/htf:sections/hrf:section/@extensionId (xs:string, 1)
+			// This identifier MUST be equal to the identifier of any of the registered extension elements,
+			// as identified by the id attribute of the <extension> element.
+			for(Object child : sections.getChildren("section", ns)) {
+				if (!(child instanceof Element)) continue;
+				Element section = (Element)child;
+				String id = StringUtils.trimToNull(section.getAttributeValue("extensionId")); // required
+				if (id == null || !extensions.contains(id)) {
+					addWarning("section extensionId " + id + " violates HL7 constraint and must equal id in /hrf:extensions");
+					break;
+				}
+			}
+		}
 	}
 
 	public void cleanup() {
