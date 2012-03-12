@@ -1,5 +1,6 @@
 package org.mitre.hdata.test;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
@@ -8,6 +9,8 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jdom.input.SAXBuilder;
 import org.mitre.hdata.test.tests.BaseUrlGetTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -20,6 +23,8 @@ import java.net.URISyntaxException;
  * Date: 2/20/12 10:55 AM
  */
 public class Context {
+
+	private static final Logger log = LoggerFactory.getLogger(Context.class);
 
 	private SAXBuilder builder, validatingBuilder;
 
@@ -44,6 +49,7 @@ public class Context {
 	protected static final String CONTINUE_AFTER_FATAL_FEATURE =
 		"http://apache.org/xml/features/continue-after-fatal-error"; // [FALSE]
 
+	@NonNull
 	private URI baseURL;
 
 	private HttpHost proxy;
@@ -53,6 +59,7 @@ public class Context {
 
 	private XMLConfiguration config;
 
+	@NonNull
 	public URI getBaseURL() {
 		return baseURL;
 	}
@@ -92,6 +99,10 @@ public class Context {
 		} else {
 			try {
 				baseURL = new URI(url);
+				if (baseURL.getQuery() != null) {
+					log.error("6.1.1 baseURL MUST NOT contain a query component, baseURL=" + baseURL);
+				}
+				// System.out.println("query=" + baseURL.getQuery());
 			} catch (URISyntaxException e) {
 				throw new IllegalArgumentException(e);
 			}
