@@ -2,6 +2,7 @@ package org.mitre.hdata.test;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.jdom.Namespace;
 
 import java.util.List;
@@ -67,16 +68,6 @@ public interface TestUnit extends Comparable<TestUnit> {
 	 */
 	boolean isRequired();
 
-	// boolean isKeepContent();
-
-	/*
-	 * Indicate that test should keep its content after it has executed to be used
-	 * by other tests in the future.
-	 *
-	 * @param keepContent True if need to keep test results after it has executed
-	 */
-	// void setKeepContent(boolean keepContent);
-
 	/**
 	 * Cleanup after test is executed. Some tests may need to keep its state( aka HTTP response)
 	 * for other tests that are dependent on its results.
@@ -100,9 +91,6 @@ public interface TestUnit extends Comparable<TestUnit> {
 	@NonNull
 	Set<? extends TestUnit> getDependencies();
 
-	//@CheckForNull
-	//TestUnit getDependency(Class<? extends TestUnit> testClass);
-
 	/**
 	 * Execute test
 	 */
@@ -120,8 +108,15 @@ public interface TestUnit extends Comparable<TestUnit> {
 	 *
 	 * @return ist, never null
 	 */
+	@NonNull
 	Set<String> getWarnings();
 
+	/**
+	 * Set property on this test.
+	 *
+	 * @param key key with which the specified value is to be associated
+	 * @param value value to be associated with the specified key
+	 */
 	void setProperty(String key, Object value);
 
 	@NonNull
@@ -136,17 +131,40 @@ public interface TestUnit extends Comparable<TestUnit> {
 	@NonNull
 	List<Class<? extends TestUnit>> getDependencyClasses();
 
+	/**
+	 * Set status on the test with an optional description (or reason).
+	 *
+	 * @param status Status code, preferably non-null
+	 * @param description Description for why status is what it is or <tt>null</tt> otherwise
+	 */
 	void setStatus(StatusEnumType status, String description);
 
+	/**
+	 * Get final execution status of the test. After execution this should be non-null
+	 * even if an exception is thrown in which it would have a <em>FAILED</em> status.
+	 * @return status
+	 */
 	StatusEnumType getStatus();
 
+	/**
+	 * Get status description associated with the final disposition of
+	 * executing or not executing this test.
+	 *
+	 * @return description, null if not defined
+	 */
+	@Nullable
 	String getStatusDescription();
 
+	/**
+	 * Get name (or short description) of the test
+	 * @return name
+	 */
 	@NonNull
 	public String getName();
 
 	/**
-	 * Unique identifier for this test. Any duplicate ids will fail to load.
+	 * Unique identifier for this test. Any tests with duplicate ids will fail to load.
+	 *
 	 * @return non-null/non-empty unique identifier.
 	 */
 	@NonNull
