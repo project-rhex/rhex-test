@@ -1,6 +1,5 @@
 package org.mitre.hdata.test;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.jdom.Namespace;
@@ -69,7 +68,7 @@ public interface TestUnit extends Comparable<TestUnit> {
 	boolean isRequired();
 
 	/**
-	 * Cleanup after test is executed. Some tests may need to keep its state( aka HTTP response)
+	 * Cleanup after test is executed. Some tests may need to keep its state (aka HTTP response)
 	 * for other tests that are dependent on its results.
 	 */
 	void cleanup();
@@ -92,7 +91,7 @@ public interface TestUnit extends Comparable<TestUnit> {
 	Set<? extends TestUnit> getDependencies();
 
 	/**
-	 * Execute test
+	 * Execute test. This method is only called if all prerequisite tests succeeded.
 	 */
 	void execute() throws TestException;
 
@@ -104,7 +103,7 @@ public interface TestUnit extends Comparable<TestUnit> {
 	void addWarning(String msg);
 
 	/**
-	 * Get list of warnings, empty if no warnings were generated
+	 * Get list of warnings, empty if no warnings were generated during execution
 	 *
 	 * @return ist, never null
 	 */
@@ -112,19 +111,35 @@ public interface TestUnit extends Comparable<TestUnit> {
 	Set<String> getWarnings();
 
 	/**
-	 * Set property on this test.
+	 * Set property on this test. This is only called if another test depends
+	 * on this test and the other test had all of its prerequisite test classes
+	 * loaded properly in which case both this test and the test that depends
+	 * on it will be added to the execution plan in that order.
 	 *
 	 * @param key key with which the specified value is to be associated
 	 * @param value value to be associated with the specified key
 	 */
 	void setProperty(String key, Object value);
 
+	/**
+	 * Get list of deferred properties for this test that will be set on the
+	 * named classes only if all prerequisite tests for this test are also loaded.
+	 * This defines a contract between this test and the dependent test such if
+	 * this test is to run then the dependent test must execute with these properties.
+	 *
+	 * @return list of properties, empty if not set
+	 */
 	@NonNull
 	List<Tuple> getProperties();
 
 	/**
-	 * Get list of dependency test classes for this test to run. If create dependency cycle then tests
-	 * creating the cycle will be skipped.
+	 * Get list of dependency test classes for this test to run. A dependency means
+	 * that if the dependent test fails then this test will not run and it's status
+	 * will be set to <tt>PREREQ_FAILED</tt>. If create dependency cycle then tests
+	 * creating the cycle will be skipped. If test is stands alone and has no
+	 * dependencies then return an empty list. Other tests can likewise be
+	 * dependent on this test and return its non-abstract class in its
+	 * getDependencyClasses() result.
 	 *
 	 * @return list, never null.
 	 */
