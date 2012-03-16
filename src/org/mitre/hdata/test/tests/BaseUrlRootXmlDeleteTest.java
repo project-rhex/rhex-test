@@ -2,6 +2,7 @@ package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.mitre.hdata.test.*;
@@ -62,7 +63,7 @@ public class BaseUrlRootXmlDeleteTest extends BaseTest {
 				}
 				*/
 			}
-			response = client.execute(req);
+			HttpResponse response = client.execute(req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);
@@ -77,7 +78,6 @@ public class BaseUrlRootXmlDeleteTest extends BaseTest {
 		} catch (URISyntaxException e) {
 			throw new TestException(e);
 		} finally {
-			// REVIEW: if HttpClient not shared with other tests
 			client.getConnectionManager().shutdown();
 		}
 	}

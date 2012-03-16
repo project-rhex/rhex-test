@@ -3,6 +3,7 @@ package org.mitre.hdata.test.tests;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -90,7 +91,7 @@ public class DocumentNotFound extends BaseXmlTest {
 				System.out.println("\nURL: " + req.getURI());
 			}
 			req.setHeader("Accept", MIME_APPLICATION_JSON);
-			response = client.execute(req);
+			HttpResponse response = client.execute(req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);
@@ -105,6 +106,7 @@ public class DocumentNotFound extends BaseXmlTest {
 				}
 			}
 			assertEquals(404, code);
+			// setResponse(response);
 			setStatus(StatusEnumType.SUCCESS);
 		} catch (URISyntaxException e) {
 			throw new TestException(e);
