@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="compile" name="hData Interoperability Testing Tool">
+<project default="compile" name="hData REST+ Interoperability Testing Tool">
 
     <property name="app.name" value="hdataTest"/>
 	
     <property name="source.level" value="1.6"/>
     <property location="src" name="src"/>
     <property name="build" value="build"/>
+	<property name="rel" value="rel" />
     <property location="${build}/classes" name="build.classes"/>
     <property location="${build}/test/" name="test.classes"/>
     <property location="testOutput/" name="testoutput"/>
@@ -27,7 +28,7 @@
         <mkdir dir="${build.classes}"/>
     </target>
 	
-    <target depends="init" description="Compile the application." name="compile">
+    <target name="compile" depends="init" description="Compile the application.">
         <javac debug="true" destdir="${build.classes}"
             source="${source.level}" srcdir="${src}" target="${source.level}">
             <classpath refid="classpath"/>
@@ -38,12 +39,11 @@
     <target
         description="Clean the output directory (start from scratch)." name="clean">
         <delete dir="${build}"/>
+		<delete dir="${rel}"/>
         <!--delete dir="${testoutput}" /-->
     </target>
-	
-    <target depends="test" name="run"/>
-	
-    <target depends="compile" name="test">
+		
+    <target name="test" depends="compile" >
         <java classname="org.mitre.hdata.test.Loader"
             classpathref="run.classpath" fork="true">
             <jvmarg value="-Xmx64m"/>
@@ -52,5 +52,21 @@
 		<arg value="-v"/-->
         </java>
     </target>
+	
+	<target name="run" depends="test" description="alias for test target"/>
+	
+	<target name="javadoc" depends="init">
+		<mkdir dir="${rel}/docs" />
+		<javadoc packagenames='org.mitre.hdata.test.*'
+	         additionalparam="-breakiterator"
+	         sourcepath="${src}" destdir='${rel}/docs'	         
+	         author='false'
+		 public='true'
+		 classpathref="classpath"
+	         windowtitle='hData REST+ Interoperability Testing Tool' doctitle='HData Testing Tool'
+	         locale='en_US'>
+		 <bottom><![CDATA[<i>Copyright &#169; 2012 MITRE Corp. All Rights Reserved.</i>]]></bottom>
+		</javadoc>		
+	</target>
 	
 </project>
