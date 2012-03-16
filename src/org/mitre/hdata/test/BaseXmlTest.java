@@ -26,6 +26,13 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	private static final String ISO_DATE_FMT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	private SimpleDateFormat dateFormatter;
 
+	private Document document;
+
+	protected boolean keepDocument;
+
+	// property
+	public static final String PROP_KEEP_DOCUMENT_BOOL = "keepDocument";
+
 	// private int xmlWarnings;
 	protected int xmlErrors;
 	protected boolean fatalXmlError;
@@ -136,6 +143,38 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 
 	protected Document getValidatingAtom(Context context, ByteArrayOutputStream bos) throws IOException, JDOMException {
 		return getValidatingParser(context, bos, "<feed", NAMESPACE_W3_ATOM_2005, "schemas/atom.xsd");
+	}
+
+	public Document getDocument() {
+		return document;
+	}
+
+	public void setDocument(Document doc) {
+		this.document = doc;
+	}
+
+	/**
+	 * Set property on this test.
+	 *
+	 * @param key key with which the specified value is to be associated
+	 * @param value value to be associated with the specified key
+	 * @exception ClassCastException if target type does not match expected type typically indicated
+	 * as ending of the property name constant (e.g. PROP_KEEP_DOCUMENT_BOOL)
+	 */
+	public void setProperty(String key, Object value) {
+		// System.out.printf("XXX: setProperty %s: %s%n", key, value);
+		if (PROP_KEEP_DOCUMENT_BOOL.equals(key))
+			keepDocument = (Boolean)value;
+		else super.setProperty(key, value);
+	}
+
+	public void cleanup() {
+		super.cleanup();
+		if (!keepDocument) {
+			// if doc is non-null then status is SUCCESS
+			// status = FAILED => doc = null
+			document = null;
+		}
 	}
 
 }
