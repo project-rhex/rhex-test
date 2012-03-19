@@ -51,4 +51,11 @@ public final class ClientHelper {
 		return type;
 	}
 
+	public static boolean isXmlContentType(String contentType) {
+		if (contentType == null || contentType.startsWith("image/")) return false;
+		if (TestUnit.MIME_APPLICATION_ATOM_XML.equals(contentType)) return true;
+		if (contentType.endsWith("/xml")) return true; // e.g. text/xml, application/xml
+		return false;
+	}
+
 }
