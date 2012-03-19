@@ -8,6 +8,8 @@ import org.apache.http.HttpResponse;
 import java.util.*;
 
 /**
+ * Abstract Base Test implementation of TestUnit.
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 11:56 AM
  */
@@ -16,7 +18,7 @@ public abstract class BaseTest implements TestUnit {
 	private StatusEnumType status;
 	private String description;
 	private Set<String> warnings;
-	protected HttpResponse response;
+	private HttpResponse response;
 	private boolean keepResponse;
 
 	private final Set<TestUnit> depends = new TreeSet<TestUnit>();
@@ -94,49 +96,71 @@ public abstract class BaseTest implements TestUnit {
 		return getId().hashCode();
 	}
 
+	/**
+	 * Add warning message to the test results
+	 *
+	 * @param msg Warning message, ignored if null
+	 */
 	public void addWarning(String msg) {
 		if (msg != null)
 			getWarnings().add(msg);
 	}
 
+	/**
+	 * Get list of warnings, empty if no warnings were generated
+	 *
+	 * @return ist, never null
+	 */
+	@NonNull
 	public Set<String> getWarnings() {
 		if (warnings == null) warnings = new LinkedHashSet<String>();
 		return warnings;
 	}
 
+	/**
+	 * Set status on the test
+	 *
+	 * @param status Status code, preferably non-null
+	 */
 	public void setStatus(StatusEnumType status) {
 		this.status = status;
 		this.description = null;
 	}
 
+	/**
+	 * Set status on the test with an optional description (or reason).
+	 *
+	 * @param status Status code, preferably non-null
+	 * @param description Description for why status is what it is or <tt>null</tt> otherwise
+	 */
 	public void setStatus(StatusEnumType status, String description) {
 		this.status = status;
 		this.description = description;
 	}
 
+	/**
+	 * Get final execution status of the test. After execution this should be non-null
+	 * even if an exception is thrown in which it would have a <em>FAILED</em> status.
+	 * @return status
+	 */
 	public StatusEnumType getStatus() {
 		return status;
 	}
 
+	/**
+	 * Get status description associated with the final disposition of
+	 * executing or not executing this test.
+	 * @return description, null if not defined
+	 */
+	@Nullable
 	public String getStatusDescription() {
 		return description;
 	}
 
-	/*
-	public boolean isKeepContent() {
-		return keepContent;
-	}
-
-	public void setKeepContent(boolean keepContent) {
-		this.keepContent = keepContent;
-	}
-	*/
-
-	public void execute() throws TestException {
-		status = StatusEnumType.SKIPPED;
-		// must implement in sub-class
-	}
-
+	/**
+	 * Get name (or short description) of the test
+	 * @return name
+	 */
 	@NonNull
 	public String getName() {
 		return "default " + getId();
@@ -147,16 +171,20 @@ public abstract class BaseTest implements TestUnit {
 		return response;
 	}
 
+	public void setResponse(HttpResponse response) {
+		this.response = response;
+	}
+
 	/**
-	 * Set deferred property on this class that will be set on the target testClass
+	 * Set deferred property on this class that will be set on the target <em>testClass</em>
 	 * instance after the instance is created and added to the execution plan list as
-	 * well as any other dependencies for this test are also loaded. It is required for
-	 * the <tt>testClass</tt> argument called here to be contained in the list
+	 * well as any other dependencies for this test are also loaded. It is required
+	 * for the <tt>testClass</tt> argument called here to be contained in the list
 	 * returned by calling the TestUnit's {@link #getDependencyClasses} method.
 	 *
 	 * @param testClass
-	 * @param key
-	 * @param value
+	 * @param key key with which the specified value is to be associated
+	 * @param value value to be associated with the specified key
 	 */
 	protected void setProperty(Class<? extends TestUnit> testClass, String key, Object value) {
 		if (properties == null) {
@@ -168,8 +196,8 @@ public abstract class BaseTest implements TestUnit {
 	/**
 	 * Set property on this test.
 	 *
-	 * @param key
-	 * @param value
+	 * @param key key with which the specified value is to be associated
+	 * @param value value to be associated with the specified key
 	 * @exception ClassCastException if target type does not match expected type typically indicated
 	 * as ending of the property name constant (e.g. PROP_KEEP_RESPONSE_BOOL)
 	 */
@@ -184,31 +212,41 @@ public abstract class BaseTest implements TestUnit {
 		}
 	}
 
+	/**
+	 * Get list of deferred properties for this test that will be set on the
+	 * named classes only if all prerequisite tests for this test are also loaded.
+	 * @return list of properties, empty if not set
+	 */
 	@NonNull
 	public List<Tuple> getProperties() {
 		return properties == null ?  Collections.<Tuple>emptyList() : properties;
 	}
-	
+
+	/**
+	 * Cleanup after test is executed. Some tests may need to keep its state
+	 * (e.g., HTTP response or created DOM instance) for other tests that are
+	 * dependent on its results.
+	 */
 	public void cleanup() {
-		if (!keepResponse) {
+		if (!keepResponse || status == StatusEnumType.FAILED) {
 			response = null; // clear response - no longer needed
 		} // else System.out.println("XXX: keep HTTP results"); // debug
 	}
 
-	// start of "junit-like methods
+	// start of "junit"-like methods
 
 	protected void assertEquals(String expected, String actual) throws TestException {
 		if (expected == null) {
 			if (actual == null) return;
 			fail("Expected null but was: <" + actual + ">");
 		} else if (!expected.equals(actual)) {
-			fail("Expected <"+expected+"> but was: <" + actual + ">");
+			fail("Expected <" + expected + "> but was: <" + actual + ">");
 		}
 	}
 
 	protected void assertEquals(int expected, int actual) throws TestException {
 		if (expected != actual) {
-			fail("Expected <"+expected+"> but was: <" + actual + ">");
+			fail("Expected <" + expected + "> but was: <" + actual + ">");
 		}
 	}
 
@@ -225,6 +263,6 @@ public abstract class BaseTest implements TestUnit {
 		throw new TestException(s);
 	}
 
-	// end of "junit-like methods
+	// end of "junit"-like methods
 
 }
