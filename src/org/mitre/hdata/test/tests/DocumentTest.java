@@ -3,6 +3,8 @@ package org.mitre.hdata.test.tests;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.jdom.Document;
@@ -13,11 +15,11 @@ import org.mitre.hdata.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -46,8 +48,12 @@ public class DocumentTest extends BaseXmlTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DocumentTest.class);
 
+	private static final boolean debugEnabled = log.isDebugEnabled();
+
 	// regexp for mime-type (rfc2046); e.g. application/rss+xml, audio/L2, application/x-pkcs7-signature, etc.
 	private static final Pattern mimePattern = Pattern.compile("[a-z]+/\\S+");
+	
+	// int count;
 
 	public DocumentTest() {
 		// forces source test to keep its Document objects after it executes
@@ -75,8 +81,8 @@ public class DocumentTest extends BaseXmlTest {
 	}
 
 	public void execute() throws TestException {
-		// pre-conditions: for this test to be executed the prerequisite test BaseUrlOptions must have passed
-		// with 200 HTTP doc
+		// pre-conditions: for this test to be executed the prerequisite test BaseSectionFromRootXml must have passed
+		// with 200 HTTP and has Map of all DOMs
 		TestUnit baseTest = getDependency(BaseSectionFromRootXml.class);
 		if (baseTest == null) {
 			// assertion failed: this should never be null
@@ -148,19 +154,17 @@ public class DocumentTest extends BaseXmlTest {
 
 	private void checkDocument(Context context, String href, String type) throws URISyntaxException, IOException {
 		URI baseURL = new URI(href);
-		System.out.println("\nXXX: document " + href + " type=" + type);
-
-		String contentType = "application/json"; // TODO: hard-coded work-around for bug https://www.pivotaltracker.com/story/show/25948565
-/*
+		final boolean debugEnabled = log.isDebugEnabled();
 		String contentType = getValidType(type);
-		if (type != null && !type.equals(contentType))
+		if (debugEnabled && type != null && !type.equals(contentType))
 			System.out.println("\tcontent type=" + contentType);
 		if (contentType == null)
-			contentType = "application/atom+xml, text/xml, application/xml, application/json, text/html, * / *";
-		else contentType += ", application/json, * / *";
-*/
-//		else contentType = "application/json, " + contentType + ", */*";
-
+			contentType = "application/atom+xml, text/xml, application/xml, application/json, text/html, */*";
+		else {
+			if (! MIME_APPLICATION_JSON.equals(contentType))
+				contentType += ", application/json";
+			contentType += ", */*";
+		}
 
 		HttpClient client = context.getHttpClient();
 		try {
@@ -168,20 +172,53 @@ public class DocumentTest extends BaseXmlTest {
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", contentType);
 			System.out.println("Accept=" + contentType);
-			response = client.execute(req);
-			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				/*
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				*/
-			}
-			// TODO: what can we test about these document URLs ???
-			// HTTP Status-Code 406: Not Acceptable.
+			validateContent(baseURL, client.execute(req), context);
 		} finally {
 			client.getConnectionManager().shutdown();
+		}
+	}
+
+	private void validateContent(URI baseURL, HttpResponse response, Context context) throws IOException {
+		// TODO: what can we test about these document URLs - does any error in document fail overall conformance for the spec requirement
+		int code = response.getStatusLine().getStatusCode();
+		if (debugEnabled) {
+			System.out.println("Response status=" + code);
+		}
+		if (code != 200) {
+			// setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
+			// HTTP Status-Code 406: Not Acceptable.
+			if (debugEnabled) {
+				if (code == 406) System.out.println("Content-Type: " + response.getFirstHeader("Content-Type"));
+				else
+					for (Header header : response.getAllHeaders()) {
+						System.out.println("\t" + header.getName() + ": " + header.getValue());
+					}
+			}
+			return;
+		}
+		final HttpEntity entity = response.getEntity();
+		if (entity == null) {
+			// no body
+			addWarning("encountered non-body response to document request");
+			log.info("no BODY in response for section: " + baseURL.getPath());
+			return;
+		}
+		long len = entity.getContentLength();
+		if (len <= 0) {
+			log.warn("section content length=" + len + ", expecting len > 0");
+			return;
+		}
+		final String contentType = ClientHelper.getContentType(entity);
+		// content-type = application/atom+xml OR text/xml OR application/xml
+		if (ClientHelper.isXmlContentType(contentType)) {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			entity.writeTo(bos);
+			try {
+				getDefaultDocument(context, bos);
+			} catch (JDOMException e) {
+				addWarning(e.getMessage());
+				log.warn("", e);
+			}
 		}
 	}
 
@@ -193,38 +230,5 @@ public class DocumentTest extends BaseXmlTest {
 		type = type.trim();
 		return mimePattern.matcher(type).matches() ? type : null;
 	}
-
-	/*
-	private boolean validateContent(int code, String path, Context context) throws TestException, IOException, JDOMException {
-		if (code != 200) {
-			setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
-			return false;
-		}
-		final HttpEntity entity = response.getEntity();
-		if (entity == null) {
-			// no body
-			log.info("no BODY in response for section: " + path);
-			return true;
-		}
-		final String contentType = ClientHelper.getContentType(entity);
-		// content-type = text/xml OR application/xml
-		if (!MIME_APPLICATION_ATOM_XML.equals(contentType)) {
-			addWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
-		}
-		long len = entity.getContentLength();
-		// minimum length expected is 66 bytes or a negative number if unknown
-		// assertTrue(len < 0 || len >= 66, "Expecting valid XML document for baseURL/root.xml; returned length was " + len);
-		if (len > 49) {
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			entity.writeTo(bos);
-			Document doc = getValidatingAtom(context, bos);
-			// assertTrue(xmlErrors == 0, "Content has errors in ATOM feed"); // leave as warning for now
-			final Element root = doc.getRootElement();
-			assertEquals(NAMESPACE_W3_ATOM_2005, root.getNamespace().getURI());
-			documentMap.put(path, doc);
-		} else log.warn("section content length=" + len + ", expecting len > 0");
-		return true;
-	}
-*/
 
 }
