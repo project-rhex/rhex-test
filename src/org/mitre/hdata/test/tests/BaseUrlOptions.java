@@ -3,6 +3,7 @@ package org.mitre.hdata.test.tests;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpOptions;
@@ -64,7 +65,7 @@ public class BaseUrlOptions extends BaseTest {
 			URI baseURL = context.getBaseURL();
 			if (log.isDebugEnabled()) System.out.println("\nOPTION URL: " + baseURL);
 			HttpOptions req = new HttpOptions(baseURL);
-			response = client.execute(req);
+			HttpResponse response = client.execute(req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("OPTION Response status=" + code);
@@ -119,13 +120,13 @@ public class BaseUrlOptions extends BaseTest {
 			supported by this implementation independent of their presence in the root document at baseURL/root.xml (cf. section
 			2.2 in [1] describing the root document format for an explanation of the extensions in a root.xml)
 			*/
+			setResponse(response);
 			setStatus(StatusEnumType.SUCCESS);		
 		} catch (ClientProtocolException e) {
 			throw new TestException(e);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
-			// REVIEW: if HttpClient not shared with other tests
 			client.getConnectionManager().shutdown();
 		}
 	}
