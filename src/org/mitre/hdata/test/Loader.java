@@ -45,32 +45,31 @@ public final class Loader {
 			context.load(config);
 
 			// load instances of all possible tests in any order
+			// prerequisites will be ordered in the execution plan such that
+			// they're executed before those tests that require them
+
 			load(new BaseUrlNotFoundTest()); 		// 6.2.1.1
 			load(new BaseUrlGetNoAcceptTest());		// 6.2.1.2
-			load(new BaseUrlGetStarAcceptTest());	// 6.2.1.3
-			load(new BaseUrlGetTest());		 		// 6.2.1.4
-			load(new BaseUrlGetHtmlAcceptTest()); 	// 6.2.1.5
+			load(new BaseUrlGetStarAcceptTest());		// 6.2.1.3
+			load(new BaseUrlGetTest());		 	// 6.2.1.4
+			load(new BaseUrlGetHtmlAcceptTest()); 		// 6.2.1.5
+			load(new BaseUrlRootXml());			// 6.3.1.1
 
-			load(new BaseUrlRootXml());				// 6.3.1
-//			load(new BaseUrlRootXmlPost());			// 6.3.2.1
-//			load(new BaseUrlRootXmlPut());			// 6.3.2.2
-//			load(new BaseUrlRootXmlDeleteTest());	// 6.3.2.3
-			load(new BaseUrlOptions());				// 6.2.5.1
-			load(new BaseUrlOptionsSecurityHeader()); // 6.2.5.2
-			load(new BaseUrlOptionsHcpHeader());	// 6.2.5.3
-			load(new BaseUrlOptionsExtHeader());	// 6.2.5.4
+			load(new BaseUrlRootXmlPost());			// 6.3.2.1
+			load(new BaseUrlRootXmlPut());			// 6.3.2.2
+			load(new BaseUrlRootXmlDeleteTest());		// 6.3.2.3
+			load(new BaseUrlOptions());			// 6.2.5.1
+			load(new BaseUrlOptionsSecurityHeader());	// 6.2.5.2
+			load(new BaseUrlOptionsHcpHeader());		// 6.2.5.3
+			load(new BaseUrlOptionsExtHeader());		// 6.2.5.4
 			load(new BaseUrlOptionNoBody());		// 6.2.5.6
 
 			load(new BaseSectionFromRootXml());		// 6.4.1.1
 			load(new SectionNotFound());			// 6.4.1.2
 
-			load(new DocumentTest());				// 6.5.1.1
+			load(new DocumentTest());			// 6.5.1.1
+			load(new DocumentNotFound());			// 6.5.1.2
 
-			//load(new Test3());
-			//load(new Test2());
-			//load(new Test5());
-			//load(new Test6());
-			//load(new Test7());
 		} catch (ConfigurationException e) {
 			log.error("", e);
 		} catch (IllegalArgumentException e) {
@@ -129,10 +128,13 @@ public final class Loader {
 		if (config != null) {
 			loader.setConfigFile(config);
 		}
+
 		System.out.println("\nExecution:");
 		long start = System.currentTimeMillis();
 		loader.execute();
 		long elapsed = System.currentTimeMillis() - start;
+
+		// TODO: output report in XML
 
 		/*
 		Set<TestUnit> sortedSet = new TreeSet<TestUnit>(new Comparator<TestUnit>() {
@@ -192,7 +194,7 @@ public final class Loader {
 					System.out.println("\t" + s);
 				}
 			} else if (status == TestUnit.StatusEnumType.FAILED && !test.isRequired()) {
-				warningCount++; // count as a warning
+				warningCount++; // count failed recommendation as a warning
 			}
 			
 			String desc = test.getStatusDescription();
@@ -204,9 +206,12 @@ public final class Loader {
 			if (dependencies.isEmpty()) {
 				System.out.println(" None");
 			} else {
+				int count = 0;
 				for(TestUnit aTest : dependencies) {
-					System.out.println(" " + aTest.getId());
+					if (count++ != 0) System.out.print(',');
+					System.out.print(" " + aTest.getId());
 				}
+				System.out.println();
 			}
 
 			System.out.println();
