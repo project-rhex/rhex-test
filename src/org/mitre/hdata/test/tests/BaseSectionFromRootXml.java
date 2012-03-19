@@ -80,7 +80,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 
 	public void execute() throws TestException {
 		// pre-conditions: for this test to be executed the prerequisite test BaseUrlOptions must have passed
-		// with 200 HTTP doc
+		// with 200 HTTP response and a valid root.xml doc
 		TestUnit baseTest = getDependency(BaseUrlRootXml.class);
 		if (baseTest == null) {
 			// assertion failed: this should never be null
@@ -133,9 +133,9 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			for(Object child : sections.getChildren("section", ns)) {
 				if (!(child instanceof Element)) continue;
 				Element e = (Element)child;
-				String path = e.getAttributeValue("path");
+				String path = e.getAttributeValue("path"); // required
 				if (StringUtils.isNotBlank(path)) {
-					System.out.println("XXX: path=" + path);//debug
+					System.out.println("XXX: path=" + path); // debug
 					if (!checkSection(context, path)) {
 						// test failed in last section
 						return;
@@ -166,7 +166,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			System.out.println("\nGET URL=" + baseURL);
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", "application/atom+xml, text/xml, application/xml");
-			response = client.execute(req);
+			HttpResponse response = client.execute(req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);
@@ -174,13 +174,15 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			return validateContent(code, path, context);
+			return validateContent(code, path, context, response);
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
 	}
 
-	private boolean validateContent(int code, String path, Context context) throws TestException, IOException, JDOMException {
+	private boolean validateContent(int code, String path, Context context, HttpResponse response)
+			throws TestException, IOException, JDOMException {
+
 		if (code != 200) {
 			setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
 			return false;
@@ -214,7 +216,9 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			// assertTrue(xmlErrors == 0, "Content has errors in ATOM feed"); // leave as warning for now
 			final Element root = doc.getRootElement();
 			assertEquals(NAMESPACE_W3_ATOM_2005, root.getNamespace().getURI());
-			documentMap.put(path, doc);
+			if (keepSectionDocs) {
+				documentMap.put(path, doc);
+			}
 		} else log.warn("section content length=" + len + ", expecting len > 0");
 
 		return true;
@@ -236,7 +240,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 
 	public void cleanup() {
 		super.cleanup();
-		if (!keepSectionDocs) {
+		if (!keepSectionDocs || getStatus() ==  TestUnit.StatusEnumType.FAILED) {
 			documentMap.clear();
 		}
 	}
