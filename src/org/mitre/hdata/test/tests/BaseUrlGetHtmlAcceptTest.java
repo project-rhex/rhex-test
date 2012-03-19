@@ -2,6 +2,7 @@ package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.jdom.JDOMException;
 import org.mitre.hdata.test.*;
 
@@ -46,7 +47,7 @@ public class BaseUrlGetHtmlAcceptTest extends BaseUrlGetTest {
 	}
 
 	// expected response status code 405 or 200
-	protected void validateContent(int code, Context context) throws TestException, IOException, JDOMException {
+	protected void validateContent(int code, Context context, HttpResponse response) throws TestException, IOException, JDOMException {
 		// if response status code not 200 then can only be 405
 		if (code == 405) {
 			// not implemented is a valid response
