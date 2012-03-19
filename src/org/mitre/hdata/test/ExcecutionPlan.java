@@ -6,6 +6,10 @@ import org.apache.commons.logging.LogFactory;
 import java.util.*;
 
 /**
+ * Creates Execution plan and orders tests depending which tests are depending
+ * on each other. Prerequisite tests ordered first and executed before the
+ * tests that require them.
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 11:04 AM
  */
@@ -37,6 +41,7 @@ public class ExcecutionPlan {
 			// 1) add independent test to tail of list
 			log.trace("Add last: " + aClass.getName());
 			list.addLast(test);
+			// System.out.printf("Add[%d]: %s%n", list.size() - 1, aClass.getName()); // debug
 			return list.size() - 1; // return index in list
 		}
 
@@ -73,7 +78,7 @@ public class ExcecutionPlan {
 		int idx = -1;
 		boolean updateIndex = false;
 		TestUnit dependsOnTest = null;
-		List<TestUnit> otherTests = new ArrayList<TestUnit>(depends.size());
+		// List<TestUnit> otherTests = new ArrayList<TestUnit>(depends.size());
 		for (Class<? extends TestUnit> dependClass : depends) {
 			TestUnit other = loader.getTest(dependClass);
 			if (other == null) {
@@ -95,10 +100,10 @@ public class ExcecutionPlan {
 			} else {
 				updateIndex = true; // index of last element may have moved due to add()
 			}
-			otherTests.add(other);
+			// otherTests.add(other);
 		}
 
-		// get index of last dependency -- index could of changed due to side-effects of recursive adds
+		// get index of last dependency -- index could have changed due to side-effects of recursive adds
 		if (dependsOnTest != null && updateIndex) {
 			idx = indexOf(dependsOnTest);
 			if (idx == -1) {
@@ -115,7 +120,7 @@ public class ExcecutionPlan {
 			return -1; // ???
 		}
 
-		System.out.println("XXX: props = " + test.getProperties());
+		// System.out.println("XXX: props = " + test.getProperties());
 		for (Tuple prop : test.getProperties()) {
 			TestUnit other = loader.getTest(prop.testClass);
 			if (other != null) other.setProperty(prop.key, prop.value);
@@ -144,15 +149,20 @@ public class ExcecutionPlan {
 			// assert status == null for all new tests
 			final TestUnit.StatusEnumType status = test.getStatus();
 			if (status != null) log.info("XXX: expected status to be null at start but was: " + status); // assertion
-			// by the method of ordering tests by this ExecutionPlan all prerequisite tests are guaranteed to be run first
-			// so we need to first check if any prerequisite test failed
+			// by the method of ordering tests by this ExecutionPlan all prerequisite tests are guaranteed
+			// to be run first so we need to first check if any prerequisite test failed in which case we
+			// cancel running this test and flag it PREREQ FAILED.
 			for (TestUnit aTest: test.getDependencies()) {
 				final TestUnit.StatusEnumType aTestStatus = aTest.getStatus();
-				if (aTestStatus ==  TestUnit.StatusEnumType.FAILED || aTestStatus ==  TestUnit.StatusEnumType.PREREQ_FAILED) {
+				if (aTestStatus == TestUnit.StatusEnumType.FAILED || aTestStatus ==  TestUnit.StatusEnumType.PREREQ_FAILED) {
 					System.out.println("Prerequisite test " + aTest.getId() + " failed");
 					test.setStatus(TestUnit.StatusEnumType.PREREQ_FAILED, "Prerequisite test " + aTest.getId() + " failed");
 					// skip test because one of its prerequisite test failed
 					continue OUTER;
+				}
+				if (aTestStatus != TestUnit.StatusEnumType.SUCCESS) {
+					log.error("XXX: wasn't expecting this situation: status=" + aTestStatus);
+					// TODO: if status other than SUCCESS (i.e. SKIPPED) should test execute ??
 				}
 			}
 			try {
@@ -164,9 +174,15 @@ public class ExcecutionPlan {
 				test.setStatus(TestUnit.StatusEnumType.FAILED, "Unexpected exception: " + e.toString());
 				log.error("", e);
 			} finally {
-				if (test.getStatus() == TestUnit.StatusEnumType.FAILED) {
+				final TestUnit.StatusEnumType testStatus = test.getStatus();
+				if (testStatus == TestUnit.StatusEnumType.FAILED) {
 					System.out.println("XXX: Test *failed*");
-					// debug
+					String desc = test.getStatusDescription();
+					if (desc != null) System.out.println("Reason: " + desc); // debug
+				} else if (testStatus == null) {
+					// assert status != null after execute() called without throwing an exception
+					log.error("status for test " + test.getId() + " is not defined after execution");
+					test.setStatus(TestUnit.StatusEnumType.SKIPPED, "Unknown status after execution");
 				}
 				test.cleanup();
 			}
