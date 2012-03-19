@@ -8,12 +8,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jdom.input.SAXBuilder;
-import org.mitre.hdata.test.tests.BaseUrlGetTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,26 +55,30 @@ public class Context {
 	// root.xml contents ?
 
 	private XMLConfiguration config;
+	private String baseUrlString; // cached copy of baseURL.toASCIIString()
 
 	@NonNull
 	public URI getBaseURL() {
 		return baseURL;
 	}
 
+	@NonNull
 	public URI getBaseURL(String relativePath) throws URISyntaxException {
 		if (StringUtils.isBlank(relativePath)) {
 			return baseURL;
 		}
-		String uri = baseURL.toASCIIString();
+		String uri = baseUrlString; // baseURL.toASCIIString();
 		if (relativePath.startsWith("/")) {
 			// relative paths are relative to the baseURL and server-relative URLs
 			// will be assumed to be relative to baseURL not the server root
-			if (uri.endsWith("/")) relativePath = relativePath.substring(1); // strip off the leading '/'
-			uri += relativePath;
+			// if (uri.endsWith("/")) // always true
+			// relativePath = relativePath.substring(1);
+			uri += relativePath.substring(1); // strip off the leading '/'
 		} else {
 			// relative path is correctly relative so append to base URL
-			if (uri.endsWith("/")) uri += relativePath;
-			else uri += "/" + relativePath;
+			uri += relativePath;
+			//if (uri.endsWith("/")) uri += relativePath; // always true
+			//else uri += "/" + relativePath;
 		}
 		return new URI(uri);
 	}
@@ -102,7 +103,14 @@ public class Context {
 				if (baseURL.getQuery() != null) {
 					log.error("6.1.1 baseURL MUST NOT contain a query component, baseURL=" + baseURL);
 				}
-				// System.out.println("query=" + baseURL.getQuery());
+				baseUrlString = baseURL.toASCIIString();
+				final String baseRawString = baseURL.toString();
+				if (!baseUrlString.equals(baseRawString)) {
+					log.warn("baseURL appears to have non-ASCII characters and comparisons using URL may have problems");
+					log.debug("baseURL ASCII String=" + baseUrlString);
+					log.debug("baseURL raw String=" + baseRawString);
+				}
+				if (!baseUrlString.endsWith("/")) baseUrlString += '/'; // end the baseURL with slash
 			} catch (URISyntaxException e) {
 				throw new IllegalArgumentException(e);
 			}
