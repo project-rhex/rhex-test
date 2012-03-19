@@ -46,6 +46,10 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 	private static final Logger log = LoggerFactory.getLogger(BaseSectionFromRootXml.class);
 
 	private final List<String> sectionList = new ArrayList<String>();
+
+	/**
+	 * Map of each section ATOM feed by section path
+	 */
 	private final Map<String,Document> documentMap = new HashMap<String, Document>();
 
 	private boolean keepSectionDocs;
@@ -191,6 +195,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 		if (entity == null) {
 			// no body
 			log.info("no BODY in response for section: " + path);
+			addWarning("encountered non-body response to section request");
 			return true;
 		}
 		final String contentType = ClientHelper.getContentType(entity);
@@ -199,9 +204,9 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			addWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
 		}
 		long len = entity.getContentLength();
-		// minimum length expected is 66 bytes or a negative number if unknown
+		// minimum length expected is 43 bytes or a negative number if unknown
 		// assertTrue(len < 0 || len >= 66, "Expecting valid XML document for baseURL/root.xml; returned length was " + len);
-		if (len > 49) {
+		if (len > 43) {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			entity.writeTo(bos);
 			/*
@@ -245,11 +250,19 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 		}
 	}
 
+	/**
+	 * Get Map of section ATOM feeds by section path as DOM objects
+	 * @return Map
+	 */
 	@NonNull
 	public Map<String, Document> getDocumentMap() {
 		return documentMap;
 	}
 
+	/**
+	 * Get list of sections as defined in root.xml
+	 * @return section list
+	 */
 	public List<String> getSectionList() {
 		return sectionList;
 	}
