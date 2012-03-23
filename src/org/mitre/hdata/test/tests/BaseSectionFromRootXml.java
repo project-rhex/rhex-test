@@ -263,6 +263,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 	 * Get list of sections as defined in root.xml
 	 * @return section list
 	 */
+	@NonNull
 	public List<String> getSectionList() {
 		return sectionList;
 	}
