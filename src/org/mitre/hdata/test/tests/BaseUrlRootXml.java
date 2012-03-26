@@ -19,9 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * <pre>
@@ -41,6 +39,11 @@ import java.util.List;
 public class BaseUrlRootXml extends BaseXmlTest {
 
 	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXml.class);
+
+	/**
+	 * Mapping of extensions to section paths
+	 */
+	private final Map<String,String> extensionPathMap = new HashMap<String, String>();
 
 	@NonNull
 	public String getId() {
@@ -70,7 +73,7 @@ public class BaseUrlRootXml extends BaseXmlTest {
 			URI baseURL = context.getBaseURL("root.xml");
 			// System.out.println("XXX: resolve="+ baseURL.resolve("/root.xml"));
 			HttpGet req = new HttpGet(baseURL);
-			req.setHeader("Accept", "text/xml");
+			req.setHeader("Accept", "application/xml");
 			// req.setHeader("If-Modified-Since", "Tue, 28 Feb 2012 14:33:15 GMT");
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + req.getURI());
@@ -114,7 +117,7 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		final String contentType = ClientHelper.getContentType(entity, false);
 		// content-type = text/xml OR application/xml
 		if (!MIME_TEXT_XML.equals(contentType) && !MIME_APPLICATION_XML.equals(contentType)) {
-			addWarning("Expected text/xml content-type but was: " + contentType);
+			addWarning("Expected supported xml content-type but was: " + contentType);
 		}
 		long len = entity.getContentLength();
 		// minimum length expected is 66 bytes or a negative number if unknown
@@ -129,9 +132,13 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		 <root xmlns="http://projecthdata.org/hdata/schemas/2009/06/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 			 ...
 			 <extensions>
+			   <extension extensionId="1">http://projecthdata.org/extension/c32</extension>
+			   ...
 			 </extensions>
-			 <extensions>
-			 </extensions>
+			 <sections>
+			 	<section path="c32" name="C32" extensionId="1"/>
+			 	...
+			 </sections>
 		 </root>
 		 */
 
@@ -158,24 +165,43 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		final Namespace ns = Namespace.getNamespace(NAMESPACE_HDATA_SCHEMAS_2009_06_CORE);
 		Element extensionsElt = root.getChild("extensions", ns);
 		HashSet<String> extensions = new HashSet<String>();
+
+		Map<String,String> idExtensionMap = new HashMap<String, String>();
 		if (extensionsElt != null) {
 			// verify HL7v3 HRF 1.0 - 2.2 bullet item #8: /hrf:extensions/hrf:extension/@extensionId (xs:string, 1)
 			// This attribute contains a local identifier for the extension. It MUST be unique within the root document.
+			/*
+			<extensions>
+				<extension extensionId="1">http://projecthdata.org/extension/c32</extension>
+				...
+		 	*/
 			for(Object child : extensionsElt.getChildren("extension", ns)) {
 				if (!(child instanceof Element)) continue;
 				Element ext = (Element)child;
 				String id = StringUtils.trimToNull(ext.getAttributeValue("extensionId")); // required
-				if (id != null && !extensions.add(id)) {
-					addWarning("duplicate extensionId for " + id + " violates HL7 unique constraint");
+				if (id != null) {
+					if (!extensions.add(id)) {
+						addWarning("duplicate extensionId for " + id + " violates HL7 unique constraint");
+					}
+					String extension = StringUtils.trimToNull(ext.getText());
+					if (extension != null) idExtensionMap.put(id, extension); // populate local mapping of ids to extensions
 				}
 			}
-			// System.out.println("XXX: extensionIds=" + extensions); // debug
+			log.trace("extensionIds={}", extensions);
 		}
+		if (extensions.isEmpty()) return; // no mappings possible
+		// System.out.println("XXX: idExtensionMap=" + idExtensionMap); // debug
+
 		Element sections = root.getChild("sections", ns);
 		if (sections != null) {
 			// verify HL7v3 HRF 1.0 - 2.2 bullet item #12: /htf:sections/hrf:section/@extensionId (xs:string, 1)
 			// This identifier MUST be equal to the identifier of any of the registered extension elements,
 			// as identified by the id attribute of the <extension> element.
+			/*
+			<sections>
+    			<section path="c32" name="C32" extensionId="1"/>
+    			...
+			 */
 			for(Object child : sections.getChildren("section", ns)) {
 				if (!(child instanceof Element)) continue;
 				Element section = (Element)child;
@@ -183,9 +209,24 @@ public class BaseUrlRootXml extends BaseXmlTest {
 				if (id == null || !extensions.contains(id)) {
 					addWarning("section extensionId " + id + " violates HL7 constraint and must equal id in /hrf:extensions");
 					break;
+				} else {
+					String extension = idExtensionMap.get(id);
+					if (extension != null) {
+						String path = StringUtils.trimToNull(section.getAttributeValue("path"));
+						if (path != null) extensionPathMap.put(extension, path);
+					}
 				}
 			}
+			log.trace("extensionPathMap={}", extensionPathMap);
 		}
 	}
 
+	/**
+	 * Get mapping of extensions to section paths
+	 * @return Map
+	 */
+	@NonNull
+	public Map<String, String> getExtensionPathMap() {
+		return extensionPathMap;
+	}
 }
