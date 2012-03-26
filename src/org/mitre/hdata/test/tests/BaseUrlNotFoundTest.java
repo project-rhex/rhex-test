@@ -14,6 +14,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * <pre>
+ * 6.2.1 GET Operation on the Base URL
+ *
+ * If there is no HDR at the base URL, the server SHOULD return a 404 - Not found status code.
+ *
+ * Status Code: 200, <B>404</B>
+ * </pre>
  * @author Jason Mathews, MITRE Corp.
 
  * Date: 2/23/12 10:45 AM
