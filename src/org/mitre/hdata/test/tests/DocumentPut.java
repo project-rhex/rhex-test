@@ -8,6 +8,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.protocol.HTTP;
 import org.mitre.hdata.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,12 +141,12 @@ public class DocumentPut extends BaseTest {
 			// formParams.add(new BasicNameValuePair("document", ""));
 			// request.setEntity(new UrlEncodedFormEntity(formParams));
 
-			File updateDocument = context.getFile("updateDocumentFile");
+			File updateDocument = context.getPropertyAsFile("updateDocumentFile");
 			if (updateDocument != null) {
-				System.out.println("\nuse input: " + updateDocument);
+				log.debug("use file input: {}", updateDocument);
 				request.setEntity(new FileEntity(updateDocument, MIME_APPLICATION_XML));
 			} else {
-				StringEntity entity = new StringEntity("plain text", "text/plain", "UTF-8");
+				StringEntity entity = new StringEntity("plain text", HTTP.PLAIN_TEXT_TYPE, "UTF-8");
 				request.setEntity(entity);
 			}
 			HttpResponse response = client.execute(request);
