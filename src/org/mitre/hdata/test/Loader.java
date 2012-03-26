@@ -53,22 +53,25 @@ public final class Loader {
 			load(new BaseUrlGetStarAcceptTest());		// 6.2.1.3
 			load(new BaseUrlGetTest());		 	// 6.2.1.4
 			load(new BaseUrlGetHtmlAcceptTest()); 		// 6.2.1.5
-			load(new BaseUrlRootXml());			// 6.3.1.1
 
-			load(new BaseUrlRootXmlPost());			// 6.3.2.1
-			load(new BaseUrlRootXmlPut());			// 6.3.2.2
-			load(new BaseUrlRootXmlDeleteTest());		// 6.3.2.3
 			load(new BaseUrlOptions());			// 6.2.5.1
 			load(new BaseUrlOptionsSecurityHeader());	// 6.2.5.2
 			load(new BaseUrlOptionsHcpHeader());		// 6.2.5.3
 			load(new BaseUrlOptionsExtHeader());		// 6.2.5.4
 			load(new BaseUrlOptionNoBody());		// 6.2.5.6
 
-			load(new BaseSectionFromRootXml());		// 6.4.1.1
+			load(new BaseUrlRootXml());			// 6.3.1.1
+
+			load(new BaseUrlRootXmlPost());			// 6.3.2.1
+			load(new BaseUrlRootXmlPut());			// 6.3.2.2
+			load(new BaseUrlRootXmlDeleteTest());		// 6.3.2.3
+
+			load(new BaseSectionFromRootXml());		// 6.4.1.1 [req=6.3.1.1]
 			load(new SectionNotFound());			// 6.4.1.2
 
-			load(new DocumentTest());			// 6.5.1.1
+			load(new DocumentTest());			// 6.5.1.1 [req=6.4.1.1]
 			load(new DocumentNotFound());			// 6.5.1.2
+			load(new DocumentPut());	// 6.5.2.3 [req=6.4.1.1]
 
 		} catch (ConfigurationException e) {
 			log.error("", e);
