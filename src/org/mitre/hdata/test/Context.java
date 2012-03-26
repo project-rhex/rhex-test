@@ -142,19 +142,40 @@ public class Context {
 	 * @return File or null if property does not found or file does not exist
 	 */
 	@CheckForNull
-	public File getFile(String key) {
+	public File getPropertyAsFile(String key) {
 		String fileProp = getString(key);
 		if (StringUtils.isBlank(fileProp)) {
-			log.debug("property {} not found or contains empty string", fileProp);
+			log.debug("property {} not found or contains empty string", key);
 			return null;
 		}
-		log.debug(fileProp);
+		log.trace(fileProp);
 		File file = new File(fileProp);
 		if (!file.isFile()) {
 			log.debug("file {} does not exist or isn't regular file", file);
 			return null;
 		}
 		return file;
+	}
+
+	/**
+	 * Get named property as URI from config.xml
+	 * @param key The configuration key
+	 * @return URI or null if property does not found or not valid URI
+	 */
+	@CheckForNull
+	public URI getPropertyAsURI(String key) {
+		String value = getString(key);
+		if (StringUtils.isBlank(value)) {
+			log.debug("property {} not found or contains empty string", key);
+			return null;
+		}
+		log.trace(value);
+		try {
+			return new URI(value);
+		} catch (URISyntaxException e) {
+			log.warn("", e);
+			return null;
+		}
 	}
 
 	public SAXBuilder getBuilder(ErrorHandler errorHandler) {

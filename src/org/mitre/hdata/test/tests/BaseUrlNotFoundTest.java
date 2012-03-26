@@ -1,8 +1,6 @@
 package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -12,8 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,16 +44,10 @@ public class BaseUrlNotFoundTest extends BaseTest {
 
 	public void execute() throws TestException {
 		final Context context = Loader.getInstance().getContext();
-		final String baseURL = context.getString("invalidBaseURL");
-		URI uri = null;
-		if (StringUtils.isNotBlank(baseURL))
-			try {
-				uri = new URI(baseURL);
-			} catch (URISyntaxException e) {
-				log.warn("", e);
-			}
+		//final String baseURL = context.getString("invalidBaseURL");
+		URI baseURL = context.getPropertyAsURI("invalidBaseURL");
 		// test pre-conditions
-		if (uri == null) {
+		if (baseURL == null) {
 			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid invalidBaseURL property in configuration");
 			return;
 		}
@@ -81,7 +71,6 @@ public class BaseUrlNotFoundTest extends BaseTest {
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
-			// REVIEW: if HttpClient not shared with other tests
 			client.getConnectionManager().shutdown();
 		}
 
