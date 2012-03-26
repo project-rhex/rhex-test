@@ -1,5 +1,6 @@
 package org.mitre.hdata.test;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -123,9 +125,36 @@ public class Context {
 			proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort), "http");
 		}
 	}
-	
+
+	/**
+	 * Get a string associated with the given configuration key.
+	 * @param key The configuration key
+	 * @return The associated string value if key is found otherwise null
+	 */
+	@CheckForNull
 	public String getString(String key) {
 		return config != null ? config.getString(key) : null;
+	}
+
+	/**
+	 * Get named property as File from config.xml
+	 * @param key The configuration key
+	 * @return File or null if property does not found or file does not exist
+	 */
+	@CheckForNull
+	public File getFile(String key) {
+		String fileProp = getString(key);
+		if (StringUtils.isBlank(fileProp)) {
+			log.debug("property {} not found or contains empty string", fileProp);
+			return null;
+		}
+		log.debug(fileProp);
+		File file = new File(fileProp);
+		if (!file.isFile()) {
+			log.debug("file {} does not exist or isn't regular file", file);
+			return null;
+		}
+		return file;
 	}
 
 	public SAXBuilder getBuilder(ErrorHandler errorHandler) {
