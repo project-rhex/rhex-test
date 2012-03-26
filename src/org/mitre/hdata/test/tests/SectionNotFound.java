@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
  * If the section document type defines a creation time, is RECOMMENDED to set the Created node to that datetime.
  * For section documents, the Atom Content element MUST contain the XML representation of its metadata (see Section 2.4.1).
  *
- * Status Code: 200
+ * Status Code: 200, [404]
  *
  * Implied If baseURL does not exist or invalid sectionpath is specified then return 404
  * </pre>
