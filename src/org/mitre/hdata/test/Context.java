@@ -4,8 +4,10 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpHost;
+import org.apache.http.*;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jdom.input.SAXBuilder;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -57,6 +60,13 @@ public class Context {
 	// root.xml contents ?
 
 	private XMLConfiguration config;
+
+	/**
+	 * server specific implementation of HttpRequestChecker to pre-test HTTP requests
+	 * such as handling authentication
+	 */
+	private HttpRequestChecker httpRequestChecker;
+
 	private String baseUrlString; // cached copy of baseURL.toASCIIString()
 
 	@NonNull
@@ -89,8 +99,9 @@ public class Context {
 	 * Load configuration
 	 *
 	 * @param config
-	 * @throws IllegalArgumentException
-	 * @exception NumberFormatException
+	 * @throws IllegalArgumentException if any required configuration element is invalid or missing
+	 * @exception NumberFormatException if any required string property does not contain a
+	 *               parsable integer.
 	 */
 	public void load(XMLConfiguration config) {
 		this.config = config;
@@ -123,6 +134,21 @@ public class Context {
 		String proxyPort = config.getString("proxy.port");
 		if (StringUtils.isNotBlank(proxyHost) && StringUtils.isNotBlank(proxyPort)) {
 			proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort), "http");
+		}
+
+		// load optional HttpRequestChecker for HTTP request handling
+		final String httpRequestCheckerClass = config.getString("HttpRequestChecker");
+		if (StringUtils.isNotBlank(httpRequestCheckerClass)) {
+			try {
+				Class httpClass = Class.forName(httpRequestCheckerClass);
+				httpRequestChecker = (HttpRequestChecker) httpClass.newInstance();
+			} catch (ClassNotFoundException e) {
+				throw new IllegalArgumentException(e);
+			} catch (InstantiationException e) {
+				throw new IllegalArgumentException(e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalArgumentException(e);
+			}
 		}
 	}
 
@@ -220,4 +246,24 @@ public class Context {
 		return client;
 	}
 
+	/**
+	 * Wrap <tt>HttpClient.execute()</tt> to pre/post-test HTTP requests for any
+	 * server specific implementation handling such as authentication.
+	 *
+	 * @param client   the HttpClient, must never be null
+	 * @param request   the request to execute, must never be null
+	 *
+	 * @return  the response to the request.
+	 * @throws IOException in case of a problem or the connection was aborted
+	 * @throws ClientProtocolException in case of an http protocol error
+	 */
+	public HttpResponse executeRequest(HttpClient client, HttpRequestBase request)
+			throws IOException
+	{
+		if (httpRequestChecker != null) {
+			return httpRequestChecker.executeRequest(this, client, request);
+		} else {
+			return client.execute(request);
+		}
+	}
 }
