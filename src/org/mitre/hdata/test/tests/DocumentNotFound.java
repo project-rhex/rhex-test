@@ -91,7 +91,7 @@ public class DocumentNotFound extends BaseXmlTest {
 				System.out.println("\nURL: " + req.getURI());
 			}
 			req.setHeader("Accept", MIME_APPLICATION_JSON);
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);

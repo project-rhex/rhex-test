@@ -170,7 +170,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			System.out.println("\nGET URL=" + baseURL);
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", "application/atom+xml, text/xml, application/xml");
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);
@@ -224,7 +224,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			if (keepSectionDocs) {
 				documentMap.put(path, doc);
 			}
-		} else log.warn("section content length=" + len + ", expecting len > 0");
+		} else log.warn("section content length=" + len + ", expecting len > 43 bytes");
 
 		return true;
 	}

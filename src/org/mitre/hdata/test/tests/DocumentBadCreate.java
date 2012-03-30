@@ -111,7 +111,7 @@ public class DocumentBadCreate extends DocumentCreate {
 			post.setEntity(entity);
 			//post.setEntity(new UrlEncodedFormEntity(formParams));
 			System.out.println("executing request " + post.getRequestLine());
-			HttpResponse response = client.execute(post);
+			HttpResponse response = context.executeRequest(client, post);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");

@@ -134,9 +134,8 @@ public class DocumentCreate extends BaseTest {
 	}
 
 	protected void sendRequest(Context context, String sectionPath) throws TestException {
-		String fileName = context.getString("document.file");
-		File fileToUpload = new File(fileName);
-		if (StringUtils.isBlank(fileName) || !fileToUpload.isFile()) {
+		File fileToUpload = context.getPropertyAsFile("document.file");
+		if (fileToUpload == null) {
 			// check pre-conditions and setup
 			log.error("Failed to specify valid document file property in configuration");
 			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document file property in configuration");
@@ -158,7 +157,7 @@ public class DocumentCreate extends BaseTest {
 			HttpPost post = new HttpPost(baseUrl);
 			post.setEntity(reqEntity);
 			System.out.println("executing request " + post.getRequestLine());
-			HttpResponse response = client.execute(post);
+			HttpResponse response = context.executeRequest(client, post);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");

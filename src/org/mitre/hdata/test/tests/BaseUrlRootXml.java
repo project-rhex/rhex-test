@@ -81,7 +81,7 @@ public class BaseUrlRootXml extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			validateContent(context, response);
 		} catch (JDOMException e) {
 			throw new TestException(e);

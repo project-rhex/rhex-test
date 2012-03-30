@@ -24,7 +24,7 @@ import java.util.List;
  * The server MUST offer an Atom 1.0 compliant feed of all child sections specified in
  * HRF specification, as identified in corresponding sections node in the root document.
  *
- * Status Code: 200, 404
+ * Status Code: <B>200</B>, 404
  * </pre>
  *
  * @author Jason Mathews, MITRE Corp.
@@ -77,7 +77,7 @@ public class BaseUrlGetTest extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);

@@ -149,7 +149,7 @@ public class DocumentPut extends BaseTest {
 				StringEntity entity = new StringEntity("plain text", HTTP.PLAIN_TEXT_TYPE, "UTF-8");
 				request.setEntity(entity);
 			}
-			HttpResponse response = client.execute(request);
+			HttpResponse response = context.executeRequest(client, request);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("PUT Response status=" + code);
