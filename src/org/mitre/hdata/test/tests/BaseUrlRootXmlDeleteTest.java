@@ -63,7 +63,7 @@ public class BaseUrlRootXmlDeleteTest extends BaseTest {
 				}
 				*/
 			}
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);

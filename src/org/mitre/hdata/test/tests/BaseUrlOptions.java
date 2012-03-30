@@ -65,7 +65,7 @@ public class BaseUrlOptions extends BaseTest {
 			URI baseURL = context.getBaseURL();
 			if (log.isDebugEnabled()) System.out.println("\nOPTION URL: " + baseURL);
 			HttpOptions req = new HttpOptions(baseURL);
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("OPTION Response status=" + code);

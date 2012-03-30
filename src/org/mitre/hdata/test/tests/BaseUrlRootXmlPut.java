@@ -56,7 +56,7 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 			URI baseURL = context.getBaseURL("root.xml");
 			if (log.isDebugEnabled()) System.out.println("\nPUT URL: " + baseURL);
 			HttpPut httppost = new HttpPut(baseURL);
-			HttpResponse response = client.execute(httppost);
+			HttpResponse response = context.executeRequest(client, httppost);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("PUT Response status=" + code);

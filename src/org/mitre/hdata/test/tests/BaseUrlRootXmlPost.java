@@ -65,7 +65,7 @@ public class BaseUrlRootXmlPost extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("GET Response status=" + code);
@@ -132,7 +132,7 @@ public class BaseUrlRootXmlPost extends BaseXmlTest {
 			*/
 
 			HttpPost httppost = new HttpPost(baseURL);
-			HttpResponse response = client.execute(httppost);
+			HttpResponse response = context.executeRequest(client, httppost);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("POST Response status=" + code);
