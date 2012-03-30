@@ -69,7 +69,9 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 		return dateFormatter;
 	}
 
-	protected Document getDefaultDocument(Context context, ByteArrayOutputStream bos) throws JDOMException, IOException {
+	protected Document getDefaultDocument(Context context, ByteArrayOutputStream bos)
+			throws JDOMException, IOException
+	{
 		return context.getBuilder(this).build(new ByteArrayInputStream(bos.toByteArray()));
 	}
 
@@ -89,17 +91,19 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	 *         from being fully parsed.
 	 */
 	protected Document getValidatingParser(Context context, ByteArrayOutputStream bos, String rootElement,
-										   String namespaceUri, String namespaceLocation) throws IOException, JDOMException {
+										   String namespaceUri, String namespaceLocation)
+			throws IOException, JDOMException
+	{
 		String content = bos.toString("UTF-8");
 		if (log.isDebugEnabled()) {
 			System.out.println("Content:\n" + content); // debug
 		}
-		int ind = content.indexOf(rootElement);
+		int ind = content.indexOf(rootElement); // find starting position of the root element (e.g. "<feed")
 		if (ind >= 0) {
 			int endp = content.indexOf('>', ind + 5);
 			if (endp > ind) {
 				//boolean changed = false;
-				// add schema location to XML to force schema validation against target ATOM XSD
+				// rewrite XML and add schema location to XML document to force schema validation against target ATOM XSD
 				// insert xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/2005/Atom file:/C:/xml/atom.xsd"
 				//if (endp > ind) {
 				// String xml = content.substring(ind, endp);
@@ -141,7 +145,9 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 		return getDefaultDocument(context, bos);
 	}
 
-	protected Document getValidatingAtom(Context context, ByteArrayOutputStream bos) throws IOException, JDOMException {
+	protected Document getValidatingAtom(Context context, ByteArrayOutputStream bos)
+			throws IOException, JDOMException
+	{
 		return getValidatingParser(context, bos, "<feed", NAMESPACE_W3_ATOM_2005, "schemas/atom.xsd");
 	}
 
