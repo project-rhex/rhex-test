@@ -1,6 +1,7 @@
 package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -65,13 +66,14 @@ public class BaseUrlNotFoundTest extends BaseTest {
 		try {
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", MIME_APPLICATION_ATOM_XML);
-			HttpResponse response = client.execute(req);
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (code == 404) {
 				setStatus(StatusEnumType.SUCCESS);
 			} else {
 				// fails to meet recommendation/should element in the specification
 				//addWarning("Expected 404 HTTP status code but was: " + code);
+				dumpResponse(req, response);
 				setStatus(StatusEnumType.FAILED, "Expected 404 HTTP status code but was: " + code);
 			}
 			// assertEquals(404, code);
@@ -80,7 +82,6 @@ public class BaseUrlNotFoundTest extends BaseTest {
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
-
 	}
 
 }
