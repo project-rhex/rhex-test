@@ -1,6 +1,7 @@
 package org.mitre.hdata.test;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -46,13 +47,11 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 	@Override
 	public void setup(Context context) {
 		log.debug("XXX: try callback to enable authentication");
-		URI uri;
+		final URI uri;
 		String target = "auth/developer/callback";
-		//String target = "/users/sign_in";
 		try {
 			URI baseURL = context.getBaseURL();
 			final int port = baseURL.getPort();
-
 			uri = port == -1 ? new URI(String.format("%s://%s/%s",
 						baseURL.getScheme(), baseURL.getHost(), target))
 					: new URI(String.format("%s://%s:%d/%s",
@@ -64,7 +63,7 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 
 		log.debug("POST auth URL: {}", uri);
 		HttpPost httppost = new HttpPost(uri);
-		// httppost.setHeader("Cache-Control", "no-cache");
+		httppost.setHeader("Cache-Control", "no-cache");
 		List<NameValuePair> formParams = new ArrayList<NameValuePair>(2);
 		formParams.add(new BasicNameValuePair("email", "testclient@mitre.org"));
 		formParams.add(new BasicNameValuePair("id", "testclient"));
@@ -91,13 +90,16 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 			 <input type='text' id='email' name='email'/>
 			 <button type='submit'>Sign In</button>      </form>
 			 */
-			if (log.isDebugEnabled()) {
-				//if (log.isTraceEnabled()) {
+			if (log.isDebugEnabled() || !checkAuth(response)) {
 				System.out.println(response.getStatusLine());
 				for (Header header : response.getAllHeaders()) {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
-				System.out.println(EntityUtils.toString(response.getEntity()));
+				try {
+					System.out.println(EntityUtils.toString(response.getEntity()));
+				} catch (IOException e) {
+					log.warn("", e);
+				}
 			}
 		} catch (UnsupportedEncodingException e) {
 			log.error("", e);
@@ -110,7 +112,7 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 				client.getConnectionManager().shutdown();
 		}
 
-		StatusLine statusLine = response.getStatusLine();
+		final StatusLine statusLine = response.getStatusLine();
 		if (statusLine != null && statusLine.getStatusCode() == 302) {
 			// HTTP/1.1 302 Moved Temporarily
 			Header cookie = response.getFirstHeader("Set-Cookie");
@@ -120,16 +122,28 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 			}
 			else log.error("Expected Set-Cookie header in response");
 			if (log.isDebugEnabled()) {
-				cookie = response.getFirstHeader("Location");
-				if (cookie != null) {
-					checkAuthentication(context, cookie.getValue());
+				Header location = response.getFirstHeader("Location");
+				if (location != null) {
+					checkAuthentication(context, location.getValue());
 					//log.debug("XXX: set local context");
 					//this.localContext = httpContext;
 				}
 				else log.error("Expected Location header in response");
 			}
+		} else {
+			log.error("Expected 302 status code in response");
 		}
-		else log.error("Expected 302 status code in response");
+	}
+
+	private static boolean checkAuth(HttpResponse response) {
+		final StatusLine statusLine = response.getStatusLine();
+		if (statusLine == null || statusLine.getStatusCode() != 302) return false;
+		Header location = response.getFirstHeader("Location");
+		/*
+		 * if successful; then Location should be web server root (e.g. http://rhex.mitre.org:3000/)
+		 * otherwise redirects to /users/sign_up
+		 */
+		return location != null && !StringUtils.endsWith(location.getValue(), "/users/sign_up");
 	}
 
 	private void checkAuthentication(Context context, String target) {
