@@ -142,6 +142,7 @@ public class Context {
 			try {
 				Class httpClass = Class.forName(httpRequestCheckerClass);
 				httpRequestChecker = (HttpRequestChecker) httpClass.newInstance();
+				httpRequestChecker.setup(this);
 			} catch (ClassNotFoundException e) {
 				throw new IllegalArgumentException(e);
 			} catch (InstantiationException e) {
@@ -236,8 +237,6 @@ public class Context {
 
 	//private HttpClient client;
 	public HttpClient getHttpClient() {
-		// TODO/REVIEW: Can/should we create HttpClient once and store here in Context class ?
-		// http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html#d5e582
 		HttpClient client = new DefaultHttpClient();
 		if (proxy != null) {
 			// System.out.println("XXX: use HTTP proxy");

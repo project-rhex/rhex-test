@@ -34,4 +34,11 @@ public interface HttpRequestChecker {
 	HttpResponse executeRequest(Context context, HttpClient client, HttpUriRequest request)
 			throws IOException;
 
+	/**
+	 * Setups and initializes the HttpRequestChecker as appropriate.
+	 * This is called once before any tests are executed.
+	 *
+	 * @param context   Application context
+	 */
+	void setup(Context context);
 }
