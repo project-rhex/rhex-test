@@ -3,7 +3,9 @@ package org.mitre.hdata.test;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 
 import java.util.*;
 
@@ -173,6 +175,13 @@ public abstract class BaseTest implements TestUnit {
 
 	public void setResponse(HttpResponse response) {
 		this.response = response;
+	}
+
+	protected void dumpResponse(HttpRequestBase req, HttpResponse response) {
+		System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
+		for (Header header : response.getAllHeaders()) {
+			System.out.println("\t" + header.getName() + ": " + header.getValue());
+		}
 	}
 
 	/**
