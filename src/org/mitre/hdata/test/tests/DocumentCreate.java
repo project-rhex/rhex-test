@@ -6,6 +6,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -58,6 +59,9 @@ import java.util.Map;
 public class DocumentCreate extends BaseTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DocumentCreate.class);
+
+	private String sectionPath;
+	private URI documentURL;
 
 	@NonNull
 	@Override
@@ -152,11 +156,11 @@ public class DocumentCreate extends BaseTest {
 			MultipartEntity reqEntity = new MultipartEntity();
 			FileBody fileBody = new FileBody(fileToUpload, MIME_APPLICATION_XML);
 			reqEntity.addPart("content", fileBody);
-			*/
 			// reqEntity.addPart("metadata", new StringBody(fileToUpload.getName())); // should be a separate XML profile file ??
+			*/
 			HttpPost post = new HttpPost(baseUrl);
 			post.setEntity(reqEntity);
-			System.out.println("executing request " + post.getRequestLine());
+			System.out.println("executing request: " + post.getRequestLine());
 			HttpResponse response = context.executeRequest(client, post);
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -171,12 +175,45 @@ public class DocumentCreate extends BaseTest {
 					System.out.println(EntityUtils.toString(resEntity));
 				}
 			}
+			/*
+			Expected response:
+
+			HTTP/1.1 201 Created
+			Location: http://rhex.mitre.org:3000/records/4f735367d7d76a43b2000001/vital_signs/4f7af4efd7d76a292600081a
+			Content-Type: text/html; charset=utf-8
+			X-UA-Compatible: IE=Edge
+			ETag: "56f5afbd5beb6b227c829c06b582dc0c"
+			Cache-Control: max-age=0, private, must-revalidate
+			Set-Cookie: _hdata-server_session=xxx...; path=/; HttpOnly
+			X-Request-Id: a0da7b61ce2c04a6b61fc17005746f60
+			X-Runtime: 0.032346
+			Content-Length: 24
+			Connection: keep-alive
+			Server: thin 1.3.1 codename Triple Espresso
+			 */
 			if (code != 201) {
 				setStatus(StatusEnumType.FAILED, "Expected 201 HTTP status code but was: " + code);
 				return;
 			}
-			// TODO: need to verify document is now added to the section ATOM feed in another test
+
+			/*
+			Validate document at location exists
+			Subsequent GET to retrieve document:
+
+			GET /records/4f735367d7d76a43b2000001/vital_signs/4f7af4efd7d76a292600081a HTTP/1.1
+			Accept: application/xml
+			Host: rhex.mitre.org:3000
+			Connection: Keep-Alive
+			User-Agent: Apache-HttpClient/4.1.3 (java 1.5)
+			Cookie: _hdata-server_session=xxx...
+			Cookie2: $Version=1
+			 */
+			validateResponse(context, response);
+			// NOTE: verify document is added to the section ATOM feed in another test
+
+			this.sectionPath = sectionPath;
 			setStatus(StatusEnumType.SUCCESS);
+			setResponse(response);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} catch (URISyntaxException e) {
@@ -186,4 +223,44 @@ public class DocumentCreate extends BaseTest {
 		}
 	}
 
+	private void validateResponse(Context context, HttpResponse response)
+			throws TestException, URISyntaxException, IOException
+	{
+		Header header = response.getFirstHeader("Location");
+		if (header == null) {
+			fail("Expected Location header in response");
+			return;
+		}
+		String location = header.getValue();
+		assertTrue(StringUtils.isNotBlank(location), "Expected non-empty value for Location");
+		final HttpClient client = context.getHttpClient();
+		try {
+			documentURL = new URI(location);
+			HttpGet req = new HttpGet(documentURL);
+			req.setHeader("Accept", MIME_APPLICATION_XML);
+			System.out.println("executing request: " + req.getRequestLine());
+			HttpResponse getResponse = context.executeRequest(client, req);
+			int code = getResponse.getStatusLine().getStatusCode();
+			if (log.isDebugEnabled()) {
+				System.out.println("----------------------------------------");
+				System.out.println("GET Response: " + getResponse.getStatusLine());
+				for (Header h : response.getAllHeaders()) {
+					System.out.println("\t" + h.getName() + ": " + h.getValue());
+				}
+			}
+			//assertEquals(200, code);
+			if (code != 200)
+				addWarning("Expected 200 HTTP status code but was: " + code);
+		} finally {
+			client.getConnectionManager().shutdown();
+		}
+	}
+
+	public String getSectionPath() {
+		return sectionPath;
+	}
+
+	public URI getDocumentURL() {
+		return documentURL;
+	}
 }
