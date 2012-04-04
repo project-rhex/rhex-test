@@ -1,38 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+
   <!--baseURL>https://hdata.herokuapp.com/records/1460</baseURL-->  
-  <baseURL>https://hdata.herokuapp.com/records/1547</baseURL>  
-  <!-- https://hdata.herokuapp.com/records/9999 -->
-  <invalidBaseURL>https://hdata.herokuapp.com/records/NotValid</invalidBaseURL>  
   
+  <baseURL>http://rhex.mitre.org:3000/records/1</baseURL>
+  <HttpRequestChecker>org.mitre.hdata.test.RhexHttpSecurityChecker</HttpRequestChecker>
+  
+  <!--invalidBaseURL>set to invalid baseURL</invalidBaseURL-->
+  <!-- https://hdata.herokuapp.com/records/9999 -->
+  <invalidBaseURL>http://rhex.mitre.org:3000/records/NotValid</invalidBaseURL>  
+  
+  <updateDocumentUrl>http://rhex.mitre.org:3000/records/2/conditions/4f735368d7d76a43b20000d6</updateDocumentUrl>
+  
+  <documentSection>vital_signs</documentSection>  
+  <updateDocumentFile>data/vitalSign.xml</updateDocumentFile>    
+    
   <!-- section off of baseURL from which to test document -->
   <document>
 	<extension>http://projecthdata.org/extension/vital-sign</extension>  
-	<file>examples/vitalSign.xml</file>
+	<file>data/vitalSign.xml</file>
   </document>
-  
-  <documentSection>vital_signs</documentSection>
-  
-  <updateDocumentUrl>https://hdata.herokuapp.com/records/1547/vital_signs/4f37e9a12a1002000400008b</updateDocumentUrl>
-  <updateDocumentFile>examples/vitalSign.xml</updateDocumentFile>
 
-  <!--
-  <document>
-	<extension>http://projecthdata.org/extension/condition</extension>  
-	<file>examples/condition.xml</file>
-  </document>
-  <document>
-	<extension>http://projecthdata.org/extension/result</extension>  
-	<file>examples/result.xml</file>
-  </document>  
-  <document>
-	<extension>http://projecthdata.org/extension/medication</extension>  
-		<file>examples/med.xml</file>
-  </document>
-  -->
-  
-  <proxy>	  
-	  <host>gatekeeper.mitre.org</host>
-	  <port>80</port>
-  </proxy>
 </configuration>
