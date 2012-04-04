@@ -24,13 +24,6 @@ public final class Loader {
 
 	private final Set<TestUnit> sortedSet = new TreeSet<TestUnit>();
 
-	/*(new Comparator<TestUnit>() {
-		public int compare(TestUnit a, TestUnit b) {
-			return a.getId().compareTo(b.getId());
-		}
-	});
-	*/
-
 	private final Set<String> idSet = new HashSet<String>();
 
 	private static final Loader loader = new Loader();
@@ -69,9 +62,14 @@ public final class Loader {
 			load(new BaseSectionFromRootXml());		// 6.4.1.1 [req=6.3.1.1]
 			load(new SectionNotFound());			// 6.4.1.2
 
+			load(new DocumentCreate());			// 6.4.2.2 [req=6.3.1.1]
+			load(new DocumentCreateCheck());		// 6.4.2.3 [req=6.4.2.2]
+
 			load(new DocumentTest());			// 6.5.1.1 [req=6.4.1.1]
 			load(new DocumentNotFound());			// 6.5.1.2
-			load(new DocumentPut());	// 6.5.2.3 [req=6.4.1.1]
+
+			load(new DocumentUpdate());			// 6.5.2.1
+			load(new DocumentPut());			// 6.5.2.3 [req=6.4.1.1]
 
 		} catch (ConfigurationException e) {
 			log.error("", e);
