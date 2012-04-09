@@ -56,7 +56,7 @@ import java.util.Map;
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:45 AM
  */
-public class DocumentCreate extends BaseTest {
+public class DocumentCreate extends BaseXmlTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DocumentCreate.class);
 
@@ -126,7 +126,7 @@ public class DocumentCreate extends BaseTest {
 		 </root>
 		 */
 
-		String sectionPath = extensionPathMap.get(extension);
+		sectionPath = extensionPathMap.get(extension);
 		if (sectionPath == null) {
 			log.error("Failed to find section " + extension + " in root.xml");
 			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
@@ -134,10 +134,10 @@ public class DocumentCreate extends BaseTest {
 		}
 
 		System.out.println("section path: " + sectionPath);
-		sendRequest(context, sectionPath);
+		sendRequest(context);
 	}
 
-	protected void sendRequest(Context context, String sectionPath) throws TestException {
+	protected void sendRequest(Context context) throws TestException {
 		File fileToUpload = context.getPropertyAsFile("document.file");
 		if (fileToUpload == null) {
 			// check pre-conditions and setup
@@ -147,7 +147,7 @@ public class DocumentCreate extends BaseTest {
 		}
 		final HttpClient client = context.getHttpClient();
 		try {
-			URI baseUrl = context.getBaseURL(sectionPath);
+			final URI baseUrl = context.getBaseURL(sectionPath);
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + baseUrl);
 			}
@@ -209,9 +209,11 @@ public class DocumentCreate extends BaseTest {
 			Cookie2: $Version=1
 			 */
 			validateResponse(context, response);
-			// NOTE: verify document is added to the section ATOM feed in another test
 
-			this.sectionPath = sectionPath;
+			// NOTE: verify document is added to the section ATOM feed in another test
+			// retrieve & store section ATOM feed for follow-on tests
+			setDocument(getSectionAtomDocument(context, baseUrl));
+
 			setStatus(StatusEnumType.SUCCESS);
 			setResponse(response);
 		} catch (IOException e) {
@@ -233,6 +235,21 @@ public class DocumentCreate extends BaseTest {
 		}
 		String location = header.getValue();
 		assertTrue(StringUtils.isNotBlank(location), "Expected non-empty value for Location");
+
+		//=========================================================
+		// debug start -- workaround for bug
+		int ind = location.lastIndexOf('/');
+		// Location: http://rhex.mitre.org:3000/records/4f735367d7d76a43b2000001/vital_signs/4f7c90a2d7d76a2926000b7f
+		// => http://rhex.mitre.org:3000/records/1/vital_signs/4f7c90a2d7d76a2926000b7f
+		// [java] <link href="http://rhex.mitre.org:3000/records/1/vital_signs/4f7c90a2d7d76a2926000b7f" type="application/xml"/>
+		if (ind > 0) {
+			location = context.getBaseURL(sectionPath + location.substring(ind)).toASCIIString();
+			// log.debug("XXX: Location {}", location);
+			response.setHeader(header.getName(), location);
+		}
+		// debug end
+		//=========================================================
+
 		final HttpClient client = context.getHttpClient();
 		try {
 			documentURL = new URI(location);
