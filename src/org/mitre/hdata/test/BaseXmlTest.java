@@ -1,5 +1,10 @@
 package org.mitre.hdata.test;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.slf4j.Logger;
@@ -12,6 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 
 /**
@@ -36,6 +43,14 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	// private int xmlWarnings;
 	protected int xmlErrors;
 	protected boolean fatalXmlError;
+
+	public Document getDocument() {
+		return document;
+	}
+
+	public void setDocument(Document doc) {
+		this.document = doc;
+	}
 
 	public void warning(SAXParseException exception) throws SAXException {
 		// xmlWarnings++;
@@ -151,12 +166,75 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 		return getValidatingParser(context, bos, "<feed", NAMESPACE_W3_ATOM_2005, "schemas/atom.xsd");
 	}
 
-	public Document getDocument() {
-		return document;
+	protected Document getSectionAtomDocument(Context context, String sectionPath) {
+		try {
+			URI baseUrl = context.getBaseURL(sectionPath);
+			return getSectionAtomDocument(context, baseUrl);
+		} catch (URISyntaxException e) {
+			log.warn("", e);
+			return null;
+		}
 	}
 
-	public void setDocument(Document doc) {
-		this.document = doc;
+	protected Document getSectionAtomDocument(Context context, URI sectionPathUri) {
+		final HttpClient client = context.getHttpClient();
+		try {
+			if (log.isDebugEnabled()) {
+				System.out.println("\nSection URL: " + sectionPathUri);
+			}
+			HttpGet req = new HttpGet(sectionPathUri);
+			req.setHeader("Accept", MIME_APPLICATION_XML); // "application/atom+xml, text/xml, application/xml");
+			System.out.println("executing request: " + req.getRequestLine());
+			HttpResponse response = context.executeRequest(client, req);
+			int code = response.getStatusLine().getStatusCode();
+			final HttpEntity entity = response.getEntity();
+			if (log.isDebugEnabled()) {
+				System.out.println("----------------------------------------");
+				System.out.println("GET Response: " + response.getStatusLine());
+				for (Header header : response.getAllHeaders()) {
+					System.out.println("\t" + header.getName() + ": " + header.getValue());
+				}
+			}
+			if (code != 200) {
+				log.warn("Expected 200 HTTP status code for section atom feed but was: " + code);
+				return null;
+			}
+			if (entity == null) {
+				log.warn("no BODY in response for section feed"); // no body
+				return null;
+			}
+			final String contentType = ClientHelper.getContentType(entity);
+			if (!MIME_APPLICATION_ATOM_XML.equals(contentType)) {
+				addWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
+			}
+			/*
+			example section ATOM feed:
+
+			<?xml version="1.0"?>
+			<feed xmlns="http://www.w3.org/2005/Atom">
+			  <id>1333458159</id>
+			  <title>/vital_signs</title>
+			  <generator version="1.0">atom feed generator</generator>
+			  <entry>
+				<id>1</id>
+				<title>Systolic Blood Pressure</title>
+				<updated>1292389200</updated>
+				<link href="http://rhex.mitre.org:3000/records/1/vital_signs/4f735368d7d76a43b200001f" type="application/xml"/>
+				<link href="http://rhex.mitre.org:3000/records/1/vital_signs/4f735368d7d76a43b200001f" type="application/json"/>
+			  </entry>
+			  ...
+			 */
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			entity.writeTo(bos);
+			return getDefaultDocument(context, bos);
+		} catch (IOException e) {
+			log.warn("", e);
+		} catch (JDOMException e) {
+			log.warn("", e);
+		} finally {
+			client.getConnectionManager().shutdown();
+		}
+		return null;
 	}
 
 	/**
