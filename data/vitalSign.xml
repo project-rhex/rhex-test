@@ -1,0 +1,9 @@
+<vitalSign xmlns="urn:hl7-org:greencda:c32">
+    <id>8f37e9a12a10020004000080</id>   
+    <code code="60621009" codeSystem="2.16.840.1.113883.6.96">
+		<originalText>BMI</originalText>
+	</code>
+	<status code="completed"/>    
+    <effectiveTime>2010-06-27 05:00:00 +0000</effectiveTime>
+    <value amount="17.358024691358025" unit="" />
+</vitalSign>
