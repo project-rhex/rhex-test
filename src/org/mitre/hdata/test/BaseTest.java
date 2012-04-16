@@ -4,9 +4,14 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -16,6 +21,8 @@ import java.util.*;
  * Date: 2/20/12 11:56 AM
  */
 public abstract class BaseTest implements TestUnit {
+
+	private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
 
 	private StatusEnumType status;
 	private String description;
@@ -178,9 +185,25 @@ public abstract class BaseTest implements TestUnit {
 	}
 
 	protected void dumpResponse(HttpRequestBase req, HttpResponse response) {
-		System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
+		 dumpResponse(req, response, false);
+	}
+
+	protected void dumpResponse(HttpRequestBase req, HttpResponse response, boolean dumpEntity) {
+		if (req != null)
+			System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
 		for (Header header : response.getAllHeaders()) {
 			System.out.println("\t" + header.getName() + ": " + header.getValue());
+		}
+		if (dumpEntity) {
+			HttpEntity entity = response.getEntity();
+			if (entity != null)
+				try {
+					System.out.println("Entity: " + EntityUtils.toString(entity));
+				} catch(IOException e) {
+					log.warn("", e);
+				}
+			else
+				System.out.println("XXX: No body");
 		}
 	}
 
