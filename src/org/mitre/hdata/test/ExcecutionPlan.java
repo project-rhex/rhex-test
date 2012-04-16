@@ -167,6 +167,8 @@ public class ExcecutionPlan {
 			}
 			try {
 				test.execute();
+				if (test.getStatus() == TestUnit.StatusEnumType.SUCCESS)
+					System.out.println("Test: OK");
 			} catch (TestException e) {
 				test.setStatus(TestUnit.StatusEnumType.FAILED, e.getMessage());
 				log.error("", e);
