@@ -65,7 +65,7 @@ public class DocumentUpdate extends BaseXmlTest {
 
 	@NonNull
 	public String getId() {
-		return "6.5.2.2";
+		return "6.5.2.1";
 	}
 
 	@Override
@@ -129,20 +129,16 @@ public class DocumentUpdate extends BaseXmlTest {
 			  - >> "    <originalText>BMI</originalText>[\r][\n]"
 			  - >> "  </code>[\r][\n]"
 			  - >> "  <status code="completed" />[\r][\n]"
-			  - >> "  <effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>[\r][\n]"
+			  - >> "  <effectiveTime>2011-06-BaseUrlNotFoundTest27 04:00:00 +0000</effectiveTime>[\r][\n]"
 			  - >> "  <value amount="17.358024691358025" unit="" />[\r][\n]"
 			  - >> "</vitalSign>[\r][\n]"
 			  - >> "[\r][\n]"
 			 */
 			HttpResponse response = context.executeRequest(client, request);
-			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
-				// System.out.println("PUT Response status=" + code);
-				System.out.println("PUT Response " + response.getStatusLine());
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+				dumpResponse(request, response);
 			}
+			int code = response.getStatusLine().getStatusCode();
 
 			// check return code
 			assertEquals(200, code);
@@ -180,8 +176,8 @@ public class DocumentUpdate extends BaseXmlTest {
 
 			<effectiveTime>
      			  <start>2009-02-09 02:00:00 -0500</start>
-       			  <end></e/nd>
-     		</effectiveTime>
+       			  <end></end>
+			</effectiveTime>
 			 */
 			String text;
 			if (start != null) {
