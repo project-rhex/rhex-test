@@ -3,12 +3,14 @@ package org.mitre.hdata.test.tests;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.Namespace;
@@ -159,8 +161,12 @@ public class CreateDuplicateSection extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			assertEquals(409, code);
-			setStatus(StatusEnumType.SUCCESS);
+			if (code != 409) {
+				dumpResponse(post, response, log.isDebugEnabled());
+				setStatus(StatusEnumType.FAILED, "Expected 409 HTTP status code but was: " + code);
+			} else {
+				setStatus(StatusEnumType.SUCCESS);
+			}
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
