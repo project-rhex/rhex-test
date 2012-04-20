@@ -11,6 +11,19 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * 6.2.5 OPTIONS
+ *
+ * The OPTIONS operation on the baseURL is per [8], section 9.2, intended to return communications options to the clients.
+ * Within the context of this specification, OPTIONS is used to indicate which security mechanisms are available for a given
+ * baseURL and a list of hData content profiles supported by this implementation. All implementations MUST support
+ * OPTIONS on the baseURL of each HDR and return a status code of 200, along with:
+ * X-hdata-security, X-hdata-hcp, and X-hdata-extensions HTTP headers. <P>
+ *
+ * The server MAY include additional HTTP headers. The response SHOULD NOT include an HTTP body. The client
+ * MUST NOT use the Max-Forward header when requesting the security mechanisms for a given HDR. <P>
+ *
+ * Status Code: 200
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:45 AM
  */
