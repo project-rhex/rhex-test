@@ -161,18 +161,17 @@ public class DocumentPut extends BaseTest {
 				setStatus(StatusEnumType.FAILED, "Expected 400 or 404 HTTP status code but was: " + code);
 				return;
 			}
+
+			setStatus(StatusEnumType.SUCCESS);
 		} catch (URISyntaxException e) {
 			log.error("", e);
 			setStatus(StatusEnumType.SKIPPED, "Failed to construct valid URI for section");
-			return;
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
 			if (client != null)
 				client.getConnectionManager().shutdown();
 		}
-
-		setStatus(StatusEnumType.SUCCESS);
 	}
 
 }
