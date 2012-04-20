@@ -85,7 +85,7 @@ public final class Loader {
 		}
 	}
 
-	private void loadDefaultTests() {
+	private void loadDefaultTests() throws IllegalArgumentException {
 			// load instances of all possible tests in any order
 			// prerequisites will be ordered in the execution plan such that
 			// they're executed before those tests that require them
@@ -119,12 +119,6 @@ public final class Loader {
 
 			load(new DocumentUpdate());			// 6.5.2.1
 			load(new DocumentPut());			// 6.5.2.3 [req=6.4.1.1]
-
-		} catch (ConfigurationException e) {
-			log.error("", e);
-		} catch (IllegalArgumentException e) {
-			log.error("", e);
-		}
 	}
 
 	public void execute() {
@@ -157,7 +151,6 @@ public final class Loader {
 	public Context getContext() {
 		return context;
 	}
-
 
 	public TestUnit getTest(Class<? extends TestUnit> aClass) {
 		return list.get(aClass);
