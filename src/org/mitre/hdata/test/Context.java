@@ -178,7 +178,7 @@ public class Context {
 		log.trace(fileProp);
 		File file = new File(fileProp);
 		if (!file.isFile()) {
-			log.debug("file {} does not exist or isn't regular file", file);
+			log.info("file {} does not exist or isn't regular file", file);
 			return null;
 		}
 		return file;

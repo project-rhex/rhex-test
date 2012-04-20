@@ -95,7 +95,7 @@ public class SectionNotFound extends BaseXmlTest {
 			URI  baseURL = context.getBaseURL("notfound");
 			HttpGet req = new HttpGet(baseURL);
 			if (log.isDebugEnabled()) {
-				System.out.println("\nURL: " + req.getURI());
+				System.out.println("\nGET URL: " + req.getURI());
 			}
 			req.setHeader("Accept", "application/atom+xml, application/xml");
 			HttpResponse response = context.executeRequest(client, req);
