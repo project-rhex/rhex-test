@@ -3,10 +3,16 @@ package org.mitre.hdata.test;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
 import org.mitre.hdata.test.tests.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -27,16 +33,59 @@ public final class Loader {
 	private final Set<String> idSet = new HashSet<String>();
 
 	private static final Loader loader = new Loader();
-	private String configFile = "config.xml";
 
 	private Loader() {
 		try {
 			XMLConfiguration config = new XMLConfiguration();
 			// load from cmd-line parameter. default=config.xml
+			String configFile = System.getProperty("configFile");
+			if (StringUtils.isBlank(configFile)) configFile = "config.xml"; // default
 			config.setFileName(configFile);
 			config.load();
 			context.load(config);
 
+			String profile = context.getString("profileDocumentFile");
+			if (StringUtils.isNotBlank(profile)) {
+				loadProfile(profile);
+			} else {
+				loadDefaultTests();
+			}
+		} catch (ConfigurationException e) {
+			log.error("", e);
+		} catch (IllegalArgumentException e) {
+			log.error("", e);
+		} catch (IOException e) {
+			log.error("Failed to load assertions from profile document", e);
+		}
+	}
+
+	private void loadProfile(String profile) throws IOException {
+		System.out.println("Profile document=" + profile);
+		File file = new File(profile);
+		if (!file.isFile()) {
+			throw new IllegalArgumentException("profile file " + profile +
+					" does not exist or isn't regular file");
+		}
+		try {
+			Document doc = context.getBuilder(null).build(file);
+			for(Object child : doc.getRootElement().getChildren("testAssertion")) {
+				if (!(child instanceof Element)) continue;
+				Element e = (Element)child;
+				String className = StringUtils.trimToEmpty(e.getAttributeValue("class"));
+				if (className == null) continue;
+				System.out.println(className);
+				Class objClass = Class.forName(className);
+				TestUnit testUnit = (TestUnit) objClass.newInstance();
+				load(testUnit);
+			}
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new IOException(e);
+		}
+	}
+
+	private void loadDefaultTests() {
 			// load instances of all possible tests in any order
 			// prerequisites will be ordered in the execution plan such that
 			// they're executed before those tests that require them
@@ -79,7 +128,7 @@ public final class Loader {
 	}
 
 	public void execute() {
-		ExcecutionPlan exec = new ExcecutionPlan(sortedSet.iterator()); // list.values());
+		ExcecutionPlan exec = new ExcecutionPlan(sortedSet.iterator());
 		exec.execute();
 	}
 
@@ -109,41 +158,31 @@ public final class Loader {
 		return context;
 	}
 
-	public void setConfigFile(String config) {
-		configFile = config;
-	}
 
 	public TestUnit getTest(Class<? extends TestUnit> aClass) {
 		return list.get(aClass);
 	}
 
 	public static void main(String[] args) {
-		String config = null;
 		final Loader loader = Loader.getInstance();
+		/*
 		for (int i=0; i <args.length; i++) {
-			if ("-config".equals(args[i]))
-				config = args[++i];
-			//else if ("-xml".equals(args[i]))
-				//xmlOutput = true;
-		}
-		if (config != null) {
-			loader.setConfigFile(config);
+			if ("-xml".equals(args[i]))
+				xmlOutput = true;
 		}
 
+		*/
 		System.out.println("\nExecution:");
 		long start = System.currentTimeMillis();
 		loader.execute();
 		long elapsed = System.currentTimeMillis() - start;
 
-		// TODO: output report in XML
+		int failed = loader.generateReport(elapsed);
 
-		/*
-		Set<TestUnit> sortedSet = new TreeSet<TestUnit>(new Comparator<TestUnit>() {
-			public int compare(TestUnit a, TestUnit b) {
-				return a.getId().compareTo(b.getId());
-			}
-		});
-		*/
+		System.exit(failed == 0 ? 0 : 1);
+	}
+
+	private static int generateReport(long elapsed) {
 		System.out.println("\n------------------------------------------------------------------------------------");
 		System.out.println("\nConformance Test Report:\n");
 		// sortedSet.addAll(loader.list.values());
@@ -174,7 +213,7 @@ public final class Loader {
 					/*
 					* Failed to meet recommended element of the specification (SHOULD, RECOMMENDED, etc.)
 					* Treated as a warning such that a test assertion failed, but the type attribute for
-					* the test assertion indicated that it was “recommended”, not “required”.
+					* the test assertion indicated that it was 'recommended', not 'required'.
 					* This type of failure will not affect the overall conformance result.
 					*/
 				}
@@ -185,7 +224,7 @@ public final class Loader {
 			}
 			System.out.printf("%s: %s%n", test.getId(), outStatus);
 			String name = test.getName();
-			if (!name.startsWith("default"))
+			//if (!name.startsWith("default"))
 				System.out.println(name);
 
 			if (!warnings.isEmpty()) {
@@ -210,7 +249,7 @@ public final class Loader {
 				int count = 0;
 				for(TestUnit aTest : dependencies) {
 					if (count++ != 0) System.out.print(',');
-					System.out.print(" " + aTest.getId());
+					System.out.printf(" %s", aTest.getId());
 				}
 				System.out.println();
 			}
@@ -220,7 +259,7 @@ public final class Loader {
 
 		System.out.printf("Tests run: %d, Failures: %d, Warnings: %d, Time elapsed: %.1f sec%n",
 				testsRun, failed, warningCount, elapsed / 1000.0);
-		System.exit(failed == 0 ? 0 : 1);
+		return failed;
 	}
 
 }
