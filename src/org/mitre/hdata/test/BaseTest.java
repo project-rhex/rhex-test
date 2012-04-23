@@ -175,6 +175,10 @@ public abstract class BaseTest implements TestUnit {
 		return "default " + getId();
 	}
 
+	protected boolean isKeepResponse() {
+		return keepResponse;
+	}
+
 	@Nullable
 	public HttpResponse getResponse() {
 		return response;
@@ -286,7 +290,6 @@ public abstract class BaseTest implements TestUnit {
 		if (!cond) fail(msg);
 	}
 
-
 	protected void assertFalse(boolean cond, String msg) throws TestException {
 		if (cond) fail(msg);
 	}
@@ -296,5 +299,4 @@ public abstract class BaseTest implements TestUnit {
 	}
 
 	// end of "junit"-like methods
-
 }
