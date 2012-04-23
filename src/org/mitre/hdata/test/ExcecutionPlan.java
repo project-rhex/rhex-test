@@ -28,6 +28,14 @@ public class ExcecutionPlan {
 		}
 	}
 
+	/**
+	 * Get tests in execution order
+	 * @return read-only list
+	 */
+	public List<TestUnit> getList() {
+		return Collections.unmodifiableList(list);
+	}
+
 	private int add(TestUnit test) {
 		final Class<? extends TestUnit> aClass = test.getClass();
 		System.out.println("Check: " + aClass.getName());
