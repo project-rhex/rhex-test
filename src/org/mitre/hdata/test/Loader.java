@@ -5,8 +5,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
 import org.mitre.hdata.test.tests.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,7 +128,7 @@ public final class Loader {
 		return loader;
 	}
 
-	private void load(TestUnit test) throws IllegalArgumentException {
+	public void load(TestUnit test) throws IllegalArgumentException {
 		if (!idSet.add(test.getId())) {
 			// assertion failed
 			throw new IllegalArgumentException("Duplicate id [" + test.getId() + "] found with test " + test.getClass().getName());
