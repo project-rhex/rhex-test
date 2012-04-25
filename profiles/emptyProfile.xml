@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assertionProfile>
+
+  <description>
+    This empty document does not specify any tests.
+	Tests loaded by tests at runtime.
+  </description>
+    
+</assertionProfile>

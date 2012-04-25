@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assertionProfile>
+
+  <description>
+    This document contains the test assertions for the 
+    Basic Profile definition. These test assertions are 
+    used by the testing tool to determine if server implementing
+	the hData interface is conformant to the Basic Profile.
+  </description>
+  
+  <testAssertion class="org.mitre.hdata.test.tests.BaseUrlGetTest"		 id="6.2.1.4" />
+  <testAssertion class="org.mitre.hdata.test.tests.BaseUrlRootXml"		 id="6.3.1.1" />
+  
+  <testAssertion class="org.mitre.hdata.test.tests.BaseSectionFromRootXml" id="6.4.1.1" prereq="6.3.1.1" />
+  
+</assertionProfile>
