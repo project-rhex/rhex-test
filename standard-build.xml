@@ -55,7 +55,7 @@
 			maven.runtime.classpath - The runtime classpath for the project POM
 			maven.test.classpath - The test classpath for the project POM
 	-->
-	<target name="buildpom">
+	<target name="buildpom" depends="init">
 		<property name="local.repository" value="${user.home}/.m2/repository"/>		
 		<maven:pom file="pom.xml" id="maven.pom" />
 		<maven:dependencies pathId="maven.test.classpath" filesetId="maven.test.fileset" useScope="test">
@@ -124,7 +124,7 @@
 		</copy-->
 	</target>
 
-	<target name="compile" depends="init, buildpom, compile.real" description="Compile the source files."/>
+	<target name="compile" depends="buildpom, compile.real" description="Compile the source files."/>
 	
 	<target name="compileTests" depends="compile, compileTests.real" description="Compile the test files."/>
 	
@@ -156,7 +156,7 @@
 	
 	<target name="test" depends="test.real" description="Run the unit tests" />	
 	
-	<target name="generate-lib-directory" depends="init, buildpom" description="Copy the libraries into a flat directory.">
+	<target name="generate-lib-directory" depends="buildpom" description="Copy the libraries into a flat directory.">
 		<delete dir="${flatlib}"/>
 		<mkdir dir="${flatlib}"/>
 		<copy todir="${flatlib}">
