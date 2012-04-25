@@ -88,6 +88,8 @@ public class BaseUrlOptionsSecurityHeader extends BaseTest {
 		• The X-hdata-security HTTP header defined in section of this specification. The security mechanisms defined at the
 		baseURL are applicable to all child resources, i.e. to the entire HDR.
 
+		X-hdata-security: http://openid.net/connect/
+
 		•  An X-hdata-hcp HTTP header that contains a space separated list of the identifiers of the hData Content Profiles
 		supported by this implementation
 

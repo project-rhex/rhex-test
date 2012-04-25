@@ -1,7 +1,7 @@
 package org.mitre.hdata.test;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -15,11 +15,12 @@ import java.util.*;
  */
 public class ExcecutionPlan {
 
-	private final static Log log = LogFactory.getLog(ExcecutionPlan.class);
+	private static final Logger log = LoggerFactory.getLogger(ExcecutionPlan.class);
 
 	private final LinkedList<TestUnit> list = new LinkedList<TestUnit>();
 	private final Set<Class<? extends TestUnit>> visited = new HashSet<Class<? extends TestUnit>>();
 	private final Loader loader = Loader.getInstance();
+	private long startTime;
 
 	public ExcecutionPlan(Iterator<TestUnit> it) {
 		while (it.hasNext()) {
@@ -36,6 +37,10 @@ public class ExcecutionPlan {
 		return Collections.unmodifiableList(list);
 	}
 
+	public long getStartTime() {
+		return startTime;
+	}
+
 	private int add(TestUnit test) {
 		final Class<? extends TestUnit> aClass = test.getClass();
 		System.out.println("Check: " + aClass.getName());
@@ -44,10 +49,25 @@ public class ExcecutionPlan {
 			return indexOf(test);
 		}
 		List<Class<? extends TestUnit>> depends = test.getDependencyClasses();
+		assert(depends != null);
+
+		// validate deferred properties are only on declared dependent test classes
+		for(Tuple prop : test.getProperties()) {
+			if (!depends.contains(prop.testClass)) {
+				log.warn("Test {} sets property {} on non-dependent class <{}>",
+					new Object[]{ aClass.getName(), prop.key, prop.testClass.getName()});
+				test.setStatus(TestUnit.StatusEnumType.SKIPPED, "Cannot set property on non-dependent class <" + prop.testClass.getName() + ">");
+				return -1;
+			}
+		}
 
 		if (depends.isEmpty()) {
 			// 1) add independent test to tail of list
 			log.trace("Add last: " + aClass.getName());
+			// if test has dependent properties but no dependencies then warn an issue
+			//if (!test.getProperties().isEmpty()) {
+				//log.warn("Test " + aClass.getName() + " has dependent properties but no dependencies");
+			//}
 			list.addLast(test);
 			// System.out.printf("Add[%d]: %s%n", list.size() - 1, aClass.getName()); // debug
 			return list.size() - 1; // return index in list
@@ -72,9 +92,19 @@ public class ExcecutionPlan {
 			// TODO: review if dependency (Prerequsite) same as require the test's input results to remain
 			// other.setKeepContent(true); // set flag to keep content in case dependency needs to use it
 			for (Tuple prop : test.getProperties()) {
-				if (prop.testClass == other.getClass())
+				// this is verified earlier that can only set properties that test is dependent on
+				// so should not to be tested again.
+				assert(prop.testClass == other.getClass());
+				try {
 					other.setProperty(prop.key, prop.value);
-				else log.error("Failed to set property on dependent test: " + prop.testClass); // assertion failed
+				} catch(IllegalArgumentException e) {
+					// setting property on one class and dependent on another - invalid test
+					final String msg = "Failed to set property on dependent test: " + prop.testClass;
+					System.out.println("ERROR: " + msg);
+					log.debug("", e);
+					test.setStatus(TestUnit.StatusEnumType.SKIPPED, msg);
+					return -1;
+				}
 			}
 			list.add(++idx, test);
 			System.out.printf("Add[%d]: %s%n", idx, aClass.getName());
@@ -131,8 +161,21 @@ public class ExcecutionPlan {
 		// System.out.println("XXX: props = " + test.getProperties());
 		for (Tuple prop : test.getProperties()) {
 			TestUnit other = loader.getTest(prop.testClass);
-			if (other != null) other.setProperty(prop.key, prop.value);
-			else log.error("Failed to set property on dependent test: " + prop.testClass);
+			//boolean setFlag = false;
+			if (other != null)
+				try {
+					other.setProperty(prop.key, prop.value);
+					//setFlag = true;
+					continue;
+				} catch(IllegalArgumentException e) {
+					log.debug("", e);
+				}
+			//if (!setFlag) {
+			final String msg = "Failed to set property on dependent test: " + prop.testClass;
+			System.out.println("ERROR: " + msg);
+			test.setStatus(TestUnit.StatusEnumType.SKIPPED, msg);
+			return -1;
+			//}
 		}
 
 		list.add(++idx, test);
@@ -151,7 +194,9 @@ public class ExcecutionPlan {
 	}
 
 	public void execute() {
-		System.out.println("\nExec Tests");
+		//SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		startTime = System.currentTimeMillis();
+		System.out.printf("\nExec Tests (%d) on %s%n", list.size(), new Date(startTime));
 		OUTER: for(TestUnit test : list) {
 			System.out.printf("%nRun test: %s [%s]%n", test.getClass().getName(), test.getId());
 			// assert status == null for all new tests
@@ -171,6 +216,7 @@ public class ExcecutionPlan {
 				if (aTestStatus != TestUnit.StatusEnumType.SUCCESS) {
 					log.error("XXX: wasn't expecting this situation: status=" + aTestStatus);
 					// TODO: if status other than SUCCESS (i.e. SKIPPED) should test execute ??
+					continue OUTER;
 				}
 			}
 			try {
@@ -191,7 +237,7 @@ public class ExcecutionPlan {
 					if (desc != null) System.out.println("Reason: " + desc); // debug
 				} else if (testStatus == null) {
 					// assert status != null after execute() called without throwing an exception
-					log.error("status for test " + test.getId() + " is not defined after execution");
+					log.error("status for test " + test.getId() + " is undefined after execution");
 					test.setStatus(TestUnit.StatusEnumType.SKIPPED, "Unknown status after execution");
 				}
 				test.cleanup();
@@ -206,4 +252,5 @@ public class ExcecutionPlan {
 			*/
 		}
 	}
+
 }

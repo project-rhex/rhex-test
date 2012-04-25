@@ -84,44 +84,69 @@ public final class Loader {
 	}
 
 	private void loadDefaultTests() throws IllegalArgumentException {
-			// load instances of all possible tests in any order
-			// prerequisites will be ordered in the execution plan such that
-			// they're executed before those tests that require them
+//			load(new TestTest()); // dummy
 
-			load(new BaseUrlNotFoundTest()); 		// 6.2.1.1
-			load(new BaseUrlGetNoAcceptTest());		// 6.2.1.2
-			load(new BaseUrlGetStarAcceptTest());		// 6.2.1.3
-			load(new BaseUrlGetTest());		 	// 6.2.1.4
-			load(new BaseUrlGetHtmlAcceptTest()); 		// 6.2.1.5
+		// load instances of all possible tests in any order
+		// prerequisites will be ordered in the execution plan such that
+		// they're executed before those tests that require them
 
-			load(new BaseUrlOptions());			// 6.2.5.1
-			load(new BaseUrlOptionsSecurityHeader());	// 6.2.5.2
-			load(new BaseUrlOptionsHcpHeader());		// 6.2.5.3
-			load(new BaseUrlOptionsExtHeader());		// 6.2.5.4
-			load(new BaseUrlOptionNoBody());		// 6.2.5.6
+		load(new BaseUrlNotFoundTest()); 		// 6.2.1.1
 
-			load(new BaseUrlRootXml());			// 6.3.1.1
+		load(new BaseUrlGetNoAcceptTest());		// 6.2.1.2
+		load(new BaseUrlGetStarAcceptTest());		// 6.2.1.3
 
-			load(new BaseUrlRootXmlPost());			// 6.3.2.1
-			load(new BaseUrlRootXmlPut());			// 6.3.2.2
-			load(new BaseUrlRootXmlDeleteTest());		// 6.3.2.3
+		load(new BaseUrlGetTest());		 	// 6.2.1.4
+		load(new BaseUrlGetHtmlAcceptTest()); 	// 6.2.1.5
+		load(new CreateSection());			// 6.2.2.1 [req=6.3.1.1]
+
+		load(new RootXmlAtomCheck()); 			// 6.2.1.6 [req=6.2.1.4, 6.3.1]
+		load(new CreateSectionCodeCheck());		// 6.2.2.2 [req=6.2.2.1]
+		load(new CreateDuplicateSection());		// 6.2.2.3 [req=6.3.1.1]
+
+		load(new BaseUrlRootXml());			// 6.3.1.1
+		load(new BaseUrlRootXmlNotFound());			// 6.3.1.2
+
+		   load(new BaseUrlOptions());			// 6.2.5.1
+		   load(new BaseUrlOptionsSecurityHeader());	// 6.2.5.2 [req=6.2.5.1]
+		   load(new BaseUrlOptionsHcpHeader());		// 6.2.5.3 [req=6.2.5.1]
+		   load(new BaseUrlOptionsExtHeader());		// 6.2.5.4 [req=6.2.5.1]
+		   load(new BaseUrlOptionNoBody());		// 6.2.5.6 [req=6.2.5.1]
+
+		   load(new BaseUrlOptionsNotFound());	// 6.2.5.7
+
+		   load(new BaseUrlRootXmlPost());			// 6.3.2.1
+		   load(new BaseUrlRootXmlPut());			// 6.3.2.2
+		   load(new BaseUrlRootXmlDeleteTest());		// 6.3.2.3
 
 			load(new BaseSectionFromRootXml());		// 6.4.1.1 [req=6.3.1.1]
-			load(new SectionNotFound());			// 6.4.1.2
 
-			load(new DocumentCreate());			// 6.4.2.2 [req=6.3.1.1]
-			load(new DocumentCreateCheck());		// 6.4.2.3 [req=6.4.2.2]
+		   load(new SectionPut());					// 6.4.3 [req=6.4.1.1]
+		   load(new SectionNotFound());			// 6.4.1.2
+		   load(new DocumentCreate());				// 6.4.2.2 [req=6.3.1.1]
+		   load(new DocumentCreateCheck());		// 6.4.2.3 [req=6.4.2.2]
+		   load(new DocumentDelete());				// 6.5.4.1 [req=6.4.2.2]
+		   load(new DocumentFutureDelete());	 	// 6.5.4.2 [req=6.4.2.2, 6.5.4.1]
 
-			load(new DocumentTest());			// 6.5.1.1 [req=6.4.1.1]
-			load(new DocumentNotFound());			// 6.5.1.2
+		   load(new CreateSubsection()); 			// 6.4.2.1.1
+		   load(new CreateSubsectionCheck()); 			// 6.4.2.1.2 [req=6.4.2.1.1]
 
-			load(new DocumentUpdate());			// 6.5.2.1
-			load(new DocumentPut());			// 6.5.2.3 [req=6.4.1.1]
+		   load(new DocumentBadCreate());			// 6.4.2.4 [req=6.3.1.1]
+		   load(new DocumentNotFound());			// 6.5.1.2
+		   // load(new DocumentPost());			// 6.5.3.1 TBD
+		   load(new DocumentTest());			// 6.5.1.1 [req=6.4.1.1]
+
+		   load(new DocumentUpdate());			// 6.5.2.1
+		   load(new DocumentPut());			// 6.5.2.3 [req=6.4.1.1]
 	}
 
-	public void execute() {
+	/**
+	 * Creates and executes an execution plan for all test loaded tests
+	 * @return timestamp when execution started
+	 */
+	public long execute() {
 		ExcecutionPlan exec = new ExcecutionPlan(sortedSet.iterator());
 		exec.execute();
+		return exec.getStartTime();
 	}
 
 	public static Loader getInstance() {
@@ -131,7 +156,8 @@ public final class Loader {
 	public void load(TestUnit test) throws IllegalArgumentException {
 		if (!idSet.add(test.getId())) {
 			// assertion failed
-			throw new IllegalArgumentException("Duplicate id [" + test.getId() + "] found with test " + test.getClass().getName());
+			log.error("Duplicate id [" + test.getId() + "] found with test " + test.getClass().getName());
+			return;
 		}
 		final Class<? extends TestUnit> aClass = test.getClass();
 		for(Class<? extends TestUnit> depend : test.getDependencyClasses()) {
@@ -164,9 +190,8 @@ public final class Loader {
 
 		*/
 		System.out.println("\nExecution:");
-		long start = System.currentTimeMillis();
-		loader.execute();
-		long elapsed = System.currentTimeMillis() - start;
+		long startTime = loader.execute();
+		long elapsed = System.currentTimeMillis() - startTime;
 
 		int failed = loader.generateReport(elapsed);
 

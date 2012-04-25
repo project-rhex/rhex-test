@@ -218,11 +218,16 @@ public abstract class BaseTest implements TestUnit {
 	 * for the <tt>testClass</tt> argument called here to be contained in the list
 	 * returned by calling the TestUnit's {@link #getDependencyClasses} method.
 	 *
-	 * @param testClass
+	 * @param testClass, never null
 	 * @param key key with which the specified value is to be associated
 	 * @param value value to be associated with the specified key
 	 */
 	protected void setProperty(Class<? extends TestUnit> testClass, String key, Object value) {
+		/*
+		if (!getDependencyClasses().contains(testClass)) {
+			throw new IllegalStateException("Test add dependency to class=" + testClass.getName());
+		}
+		*/
 		if (properties == null) {
 			properties = new ArrayList<Tuple>();
 		}

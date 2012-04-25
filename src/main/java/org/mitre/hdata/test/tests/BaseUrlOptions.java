@@ -96,6 +96,7 @@ public class BaseUrlOptions extends BaseTest {
 					*/
 				}
 			}
+			// NOTE: check X-hdata-* header fields in follow-up test
 			/*
 			if (response.getFirstHeader("X-hdata-security") == null &&
 					response.getFirstHeader("X-hdata-hcp") == null &&
@@ -113,12 +114,21 @@ public class BaseUrlOptions extends BaseTest {
 			• The X-hdata-security HTTP header defined in section of this specification. The security mechanisms defined at the
 			baseURL are applicable to all child resources, i.e. to the entire HDR.
 
+				X-hdata-security: http://openid.net/connect/
+
 			•  An X-hdata-hcp HTTP header that contains a space separated list of the identifiers of the hData Content Profiles
 			supported by this implementation
+
+				X-hdata-hcp: http://projecthdata.org/hcp/greenCDA-CoC
 
 			• The X-hdata-extensions HTTP header contains a space separated list of the identifiers of the hData extensions
 			supported by this implementation independent of their presence in the root document at baseURL/root.xml (cf. section
 			2.2 in [1] describing the root document format for an explanation of the extensions in a root.xml)
+
+				X-hdata-extensions: http://projecthdata.org/extension/allergy http://projecthdata.org/extension/care-goal http://projecthdata.org/extension/condition
+				http://projecthdata.org/extension/encounter http://projecthdata.org/extension/immunization http://projecthdata.org/extension/medical-equipment
+				http://projecthdata.org/extension/medication http://projecthdata.org/extension/procedure http://projecthdata.org/extension/result
+				http://projecthdata.org/extension/social-history http://projecthdata.org/extension/vital-sign
 			*/
 			setResponse(response);
 			setStatus(StatusEnumType.SUCCESS);		
