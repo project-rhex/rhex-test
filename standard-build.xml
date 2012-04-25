@@ -139,6 +139,7 @@
 			<classpath>				
 				<pathelement path="${build.classes}"/>
 				<pathelement path="${build.test}"/>				
+				<pathelement location="src/test/resources"/>
 				<pathelement location="src/main/resources"/>
 				<path refid="maven.test.classpath"/>			
 			</classpath>
