@@ -46,10 +46,15 @@ public final class Loader {
 
 			// dump the config file to output
 			System.out.println("Config: " + configName);
-			// strip comments and blank lines
-			System.out.println(IOUtils.toString(new FileReader(configFile))
-					.replaceAll("(?s)<!--.*?-->\r?\n?","")
-					.replaceAll("(?s)\\s*[\r\n]+", "\n"));
+			try {
+				// strip comments and blank lines
+				final String content = IOUtils.toString(new FileReader(configFile))
+						.replaceAll("(?s)<!--.*?-->\r?\n?", "")
+						.replaceAll("(?s)\\s*[\r\n]+", "\n");
+				System.out.println(content);
+			} catch(IOException e) {
+				log.debug("", e);
+			}
 			System.out.println("---------------------------------------------------------------------");
 
 			context.load(config);
