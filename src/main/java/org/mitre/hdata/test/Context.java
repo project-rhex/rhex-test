@@ -200,7 +200,7 @@ public class Context {
 		try {
 			return new URI(value);
 		} catch (URISyntaxException e) {
-			log.warn("", e);
+			log.warn(e.toString());
 			return null;
 		}
 	}
