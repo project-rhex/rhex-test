@@ -94,11 +94,11 @@
 			<compilerarg value="-Xlint:all,-path"/>
 			<classpath refid="maven.compile.classpath"/>
 		</javac>
-		<copy todir="${build.classes}">
+		<!--copy todir="${build.classes}">
 			<fileset dir="${src}">
 				<exclude name="**/*.java"/>
 			</fileset>
-		</copy>		
+		</copy-->		
 	</target>
 
 	<!-- Actually compile the test files. If you need custom compilation support
@@ -117,11 +117,11 @@
 				<path refid="maven.test.classpath"/>
 			</classpath>
 		</javac>
-		<copy todir="${build.test}">
+		<!--copy todir="${build.test}">
 			<fileset dir="${test}">
 				<exclude name="**/*.java"/>
 			</fileset>
-		</copy>
+		</copy-->
 	</target>
 
 	<target name="compile" depends="init, buildpom, compile.real" description="Compile the source files."/>
@@ -138,8 +138,8 @@
 			</assertions>
 			<classpath>				
 				<pathelement path="${build.classes}"/>
-				<pathelement path="${build.test}"/>
-				<pathelement location="resources"/>
+				<pathelement path="${build.test}"/>				
+				<pathelement location="src/main/resources"/>
 				<path refid="maven.test.classpath"/>			
 			</classpath>
 			<formatter usefile="false" type="brief"/>
