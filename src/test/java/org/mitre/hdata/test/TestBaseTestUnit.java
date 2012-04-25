@@ -25,4 +25,11 @@ public class TestBaseTestUnit extends TestCase {
 		assertTrue(test1.compareTo(test2) < 0);
 	}
 
+	public void testXml() throws TestException {
+		TestXml test = new TestXml();
+		test.execute();
+		assertNotNull(test.getDocument());
+		assertEquals(TestUnit.StatusEnumType.SUCCESS, test.getStatus());
+	}
+
 }

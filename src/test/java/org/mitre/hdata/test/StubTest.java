@@ -1,10 +1,15 @@
 package org.mitre.hdata.test;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpVersion;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.jdom.JDOMException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -269,6 +274,45 @@ public abstract class StubTest extends BaseTest {
 		@Override
 		public String getId() {
 			return "1.0.8";
+		}
+	}
+
+	static class TestXml extends BaseXmlTest {
+
+		@Override
+		public boolean isRequired() {
+			return true;
+		}
+
+		@Override
+		public void execute() throws TestException {
+			Context context = Loader.getInstance().getContext();
+			try {
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				IOUtils.copy(new FileReader("data/test.atom"), bos);
+				getDefaultDocument(context, bos);
+				setDocument(getValidatingAtom(context, bos));
+				if (xmlErrors == 0)
+					setStatus(StatusEnumType.SUCCESS);
+				else
+					setStatus(StatusEnumType.FAILED);
+			} catch (IOException e) {
+				fail(e.toString());
+			} catch (JDOMException e) {
+				fail(e.toString());
+			}
+		}
+
+		@NonNull
+		@Override
+		public List<Class<? extends TestUnit>> getDependencyClasses() {
+			return Collections.emptyList();
+		}
+
+		@NonNull
+		@Override
+		public String getId() {
+			return "1.0.9";
 		}
 	}
 
