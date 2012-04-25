@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="standard-build" basedir="." xmlns:maven="antlib:org.apache.maven.artifact.ant">
+
+	<!--
+		requires maven ant tasks plugin in the ant lib directory.
+		See http://maven.apache.org/ant-tasks/download.html
+	-->
+
+	<!-- This is version 1 -->
+	<property name="src" location="${basedir}/src/main/java"/>
+	<property name="test" location="${basedir}/src/test/java"/>
+	<property name="build.top" location="${basedir}/build/"/>
+	<property name="build.classes" location="${build.top}/classes/"/>
+	<property name="build.test" location="${build.top}/test/"/>
+	<property name="depcache" location="${basedir}/depcache/"/>		
+	<property name="flatlib" location="${basedir}/flatlib/"/>
+	<property name="testOutput" location="${build.top}/testOutput"/>
+
+	<property file="local.properties"/>
+	<property file="build.properties"/>	
+
+	<!-- Clean up temporary files. -->
+	<target name="clean" description="Clean up temporary files.">
+		<delete dir="${build.top}"/>
+		<delete dir="${depcache}"/>		
+	</target>
+
+	<!-- Create directories, define the output.classpath, and define the
+	     maven repositories. -->
+	<target name="init">
+		<fail unless="version" message="The version property was not set."/>
+		<fail unless="source.level" message="The source.level property was not set."/>
+		<fail unless="pname" message="The pname property was not set."/>
+
+		<mkdir dir="${build.top}"/>
+		<mkdir dir="${build.classes}"/>
+		<mkdir dir="${build.test}"/>
+		
+		<path id="output.classpath">
+			<pathelement location="${build.classes}"/>
+			<pathelement location="${build.test}"/>
+		</path>
+
+		<maven:remoteRepository url="${maven.primary.url}" id="maven.repo.primary">
+		 <snapshots enabled="false"/>
+		</maven:remoteRepository>
+		<maven:remoteRepository url="${maven.backup.url}" id="maven.repo.backup">
+		 <snapshots enabled="false"/>
+		</maven:remoteRepository>
+	</target>
+
+	<!-- Generate the poms and set maven classpaths.
+			maven.pom - The project POM
+			maven.compile.classpath - The compile classpath for the project POM
+			maven.runtime.classpath - The runtime classpath for the project POM
+			maven.test.classpath - The test classpath for the project POM
+	-->
+	<target name="buildpom">
+		<property name="local.repository" value="${user.home}/.m2/repository"/>		
+		<maven:pom file="pom.xml" id="maven.pom" />
+		<maven:dependencies pathId="maven.test.classpath" filesetId="maven.test.fileset" useScope="test">
+			<pom refid="maven.pom"/>
+			<remoteRepository refid="maven.repo.primary"/>
+			<remoteRepository refid="maven.repo.backup"/>
+			<localRepository path="${local.repository}"/>
+		</maven:dependencies>
+		<maven:dependencies pathId="maven.runtime.classpath" filesetId="maven.runtime.fileset" useScope="runtime">
+			<pom refid="maven.pom"/>
+			<remoteRepository refid="maven.repo.primary"/>
+			<remoteRepository refid="maven.repo.backup"/>
+			<localRepository path="${local.repository}"/>
+		</maven:dependencies>
+		<maven:dependencies pathId="maven.compile.classpath" filesetId="maven.compile.fileset" useScope="compile">
+			<pom refid="maven.pom"/>
+			<remoteRepository refid="maven.repo.primary"/>
+			<remoteRepository refid="maven.repo.backup"/>
+			<localRepository path="${local.repository}"/>
+		</maven:dependencies>
+	</target>
+
+	<!-- Actually compile the files. If you need custom compilation support
+	     then override this, not the compile target. -->
+	<target name="compile.real">
+		<depend srcdir="${src}" destdir="${build.classes}" closure="true"
+		        cache="${depcache}" />
+		<depend srcdir="${test}" destdir="${build.test}" closure="true"
+		        cache="${depcache}">
+			<classpath location="${build.classes}"/>
+		</depend>
+
+		<javac srcdir="${src}" destdir="${build.classes}"
+		       debug="on" source="${source.level}" target="${source.level}"
+		       includeantruntime="false" deprecation="true">
+			<compilerarg value="-Xlint:all,-path"/>
+			<classpath refid="maven.compile.classpath"/>
+		</javac>
+		<copy todir="${build.classes}">
+			<fileset dir="${src}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>		
+	</target>
+
+	<!-- Actually compile the test files. If you need custom compilation support
+	     then override this, not the compileTests target. -->	
+	<target name="compileTests.real">
+		<depend srcdir="${test}" destdir="${build.test}" closure="true"
+		        cache="${depcache}">
+			<classpath location="${build.classes}"/>
+		</depend>
+		<javac srcdir="${test}" destdir="${build.test}"
+		       debug="on" source="${source.level}" target="${source.level}"
+		       includeantruntime="false" deprecation="true">
+			<compilerarg value="-Xlint:all,-path"/>
+			<classpath>
+				<path location="${build.classes}"/>
+				<path refid="maven.test.classpath"/>
+			</classpath>
+		</javac>
+		<copy todir="${build.test}">
+			<fileset dir="${test}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile" depends="init, buildpom, compile.real" description="Compile the source files."/>
+	
+	<target name="compileTests" depends="compile, compileTests.real" description="Compile the test files."/>
+	
+	<target name="test.real" depends="compileTests">				
+		<mkdir dir="${testOutput}" />
+		<junit printsummary="yes" haltonfailure="no" maxmemory="512m" fork="yes">		
+			<sysproperty key="basedir" file="${top.basedir}"/>
+			<jvmarg value="-DconfigFile=testConfig.xml"/>			
+			<assertions>
+			  <enable package="org.mitre.hdata.test"/>
+			</assertions>
+			<classpath>				
+				<pathelement path="${build.classes}"/>
+				<pathelement path="${build.test}"/>
+				<pathelement location="resources"/>
+				<path refid="maven.test.classpath"/>			
+			</classpath>
+			<formatter usefile="false" type="brief"/>
+			<formatter type="plain"/>
+
+			<batchtest fork="yes" todir="${testOutput}">
+				<fileset dir="${test}">					
+					<include name="**/Test*.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+	
+	<target name="test" depends="test.real" description="Run the unit tests" />	
+	
+	<target name="generate-lib-directory" depends="init, buildpom" description="Copy the libraries into a flat directory.">
+		<delete dir="${flatlib}"/>
+		<mkdir dir="${flatlib}"/>
+		<copy todir="${flatlib}">
+			<fileset refid="maven.test.fileset"/>
+			<mapper type="flatten"/>
+		</copy>
+	</target>
+	
+	<!-- The "usage" target prints to the standard output all available
+         targets and brief descriptions of each
+    -->
+    <target name="help">
+        <echo>
++--------------------------------------------------------------------------
+| TARGET           :    DESCRIPTION
++--------------------------------------------------------------------------
+| init             :    sets specific run time properties for the build
+| compile          :    compiles the projects Java source
+| install          :    Install the jar to a local maven repository
+| clean            :    removes files created from compile target and temp files
+| test             :    runs tests on project
+| help             :    prints this usage statement
++--------------------------------------------------------------------------
+        </echo>
+    </target>
+</project>
