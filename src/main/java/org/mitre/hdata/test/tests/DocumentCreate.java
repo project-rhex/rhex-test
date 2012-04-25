@@ -60,7 +60,7 @@ public class DocumentCreate extends BaseXmlTest {
 
 	private static final Logger log = LoggerFactory.getLogger(DocumentCreate.class);
 
-	private String sectionPath;
+	protected String sectionPath;
 	private URI documentURL;
 
 	@NonNull

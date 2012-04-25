@@ -91,7 +91,7 @@ public class DocumentBadCreate extends DocumentCreate {
 	}
  	*/
 
-	protected void sendRequest(Context context, String sectionPath) throws TestException {
+	protected void sendRequest(Context context) throws TestException {
 		final HttpClient client = context.getHttpClient();
 		try {
 			URI baseUrl = context.getBaseURL(sectionPath);
