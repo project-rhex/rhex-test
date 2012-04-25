@@ -14,7 +14,13 @@ Bulding and running the test client
 Create local.properties file to overide default project properties in build.properties file.
 For example set proxy properties if behind a http proxy.
 
+You may have to create a local 'settings.xml' file for Maven to work.
+See http://maven.apache.org/settings.html
+
 Run ant "test" target to run basic junit tests.
+
+If all tests pass then test tool compiles correctly and ready to configure
+the tool to test your hData-compliant service.
 
 Before running the testing tool you must edit/create a config.xml file
 that defines the inputs and context for the tests starting with a baseURL
