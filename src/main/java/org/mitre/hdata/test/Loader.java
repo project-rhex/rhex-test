@@ -2,6 +2,7 @@ package org.mitre.hdata.test;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
@@ -36,10 +38,20 @@ public final class Loader {
 		try {
 			XMLConfiguration config = new XMLConfiguration();
 			// load from cmd-line parameter. default=config.xml
-			String configFile = System.getProperty("configFile");
-			if (StringUtils.isBlank(configFile)) configFile = "config.xml"; // default
-			config.setFileName(configFile);
+			String configName = System.getProperty("configFile");
+			if (StringUtils.isBlank(configName)) configName = "config.xml"; // default
+			File configFile = new File(configName);
+			config.setFile(configFile);
 			config.load();
+
+			// dump the config file to output
+			System.out.println("Config: " + configName);
+			// strip comments and blank lines
+			System.out.println(IOUtils.toString(new FileReader(configFile))
+					.replaceAll("(?s)<!--.*?-->\r?\n?","")
+					.replaceAll("(?s)\\s*[\r\n]+", "\n"));
+			System.out.println("---------------------------------------------------------------------");
+
 			context.load(config);
 
 			String profile = context.getString("profileDocumentFile");
