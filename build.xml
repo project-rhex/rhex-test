@@ -16,10 +16,8 @@
 				<path refid="maven.runtime.classpath"/>
 				<pathelement location="src/main/resources"/>
 			  </classpath>
-            <jvmarg value="-Xmx64m"/>
-			<!--
-			<jvmarg value="-DconfigFile=config-heroku-example.xml"/>            				
-			-->
+            <jvmarg value="-Xmx64m"/>			
+			<jvmarg value="-DconfigFile=${config.xml.file}"/> 			
         </java>
     </target>  
 
