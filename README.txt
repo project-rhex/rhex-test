@@ -1,7 +1,10 @@
-An hData hData Interoperability Testing Tool reference implemementation in Java.
+A RHEx Interoperability Testing Tool reference implemementation in Java.
 
 Validates that a hData service endpoint implements the hData interfaces
 and conforms to the specifications.
+
+Currently implements a number of test assertions related to the OMG 
+hData RESTful Transport and HL7 hData Record Format specifications.
 
 Author: Jason Mathews
 
@@ -17,7 +20,11 @@ For example set proxy properties if behind a http proxy.
 You may have to create a local 'settings.xml' file for Maven to work.
 See http://maven.apache.org/settings.html
 
-Run ant "test" target to run basic junit tests.
+Run ant test target to run basic junit tests.
+> ant test
+
+Alternatively can use gradle to build and run tests:
+> gradle test
 
 If all tests pass then test tool compiles correctly and ready to configure
 the tool to test your hData-compliant service.
