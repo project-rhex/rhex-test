@@ -121,6 +121,7 @@ public final class Loader {
 		load(new BaseUrlOptionsNotFound());		// 6.2.5.7
 
 		load(new BaseUrlRootXml());			// 6.3.1.1
+		load(new BaseUrlRootXmlNotFound());		// 6.3.1.2
 
 		load(new BaseUrlRootXmlPost());			// 6.3.2.1
 		load(new BaseUrlRootXmlPut());			// 6.3.2.2
@@ -234,14 +235,17 @@ public final class Loader {
 					* This type of failure will not affect the overall conformance result.
 					*/
 				}
-			} else if (status == TestUnit.StatusEnumType.SUCCESS && !warnings.isEmpty()) {
-				outStatus = "Success with warnings";
+			} else if (status == TestUnit.StatusEnumType.SUCCESS) {
+				if (warnings.isEmpty())
+					outStatus = "Passed";
+				else
+					outStatus = "Passed with warnings";
 			} else {
-				outStatus = status.toString(); // SUCCESS + SKIPPED
+				outStatus = status.toString(); // SKIPPED
 			}
 			System.out.printf("%s: %s%n", test.getId(), outStatus);
 			String name = test.getName();
-			//if (!name.startsWith("default"))
+			if (!name.startsWith("default"))
 				System.out.println(name);
 
 			if (!warnings.isEmpty()) {
