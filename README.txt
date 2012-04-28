@@ -43,8 +43,12 @@ You can override the test environment by setting the variable for
 System requirements
 -------------------
 
-Ant build requires maven ant tasks plugin in the ant lib directory.
-See http://maven.apache.org/ant-tasks/download.html
-
 JDK version 1.6 or above is required
-Ant version 1.7.x or 1.8.x is required
+
+Build tool: use one of the following:
+- Ant version 1.7.x or 1.8.x is required(*)
+- Gradle 1.0-rc2 or higher
+
+Note(*): if Ant is used to build project then you must download maven ant
+tasks plugin and install into the ant lib directory.
+See http://maven.apache.org/ant-tasks/download.html
