@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
+  <!--
+    baseURL:
+    This is the baseURL from which most tests will execute relative to
+    This URL must be a baseURL as defined by the OMG hData RESTful Transport
+    specification from which special names (e.g. /root.xml), sections and
+    documents are appended to the baseURL in meaningful ways.
+  -->
   <baseURL>https://hdata.herokuapp.com/records/1547</baseURL>
   
-  <proxy>	  
-	  <host>gatekeeper.mitre.org</host>
+  <!-- define proxy if need HTTP proxy to access the target URL -->
+  <!--proxy>	  
+	  <host>your.http.proxy.org</host>
 	  <port>80</port>
-  </proxy>
+  </proxy-->
   
+  <!--
+  updateDocumentUrl:
+  
+  URL must be to an XML document that the DocumentUpdate test can update.
+  Test expects an effectiveTime as a child element of the root element
+  such as the following:
+
+	<effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
+
+	or
+
+	<effectiveTime>
+	  <start>2005-02-09 05:00:00 -0500</start>
+	</effectiveTime>
+
+  otherwise test will be unable to update the given document
+  -->
   <updateDocumentUrl>https://hdata.herokuapp.com/records/1547/vital_signs/4f37e9a12a1002000400008b</updateDocumentUrl>
   
   <!-- https://hdata.herokuapp.com/records/9999 -->
@@ -22,5 +47,11 @@
   <documentSection>vital_signs</documentSection>
     
   <updateDocumentFile>examples/vitalSign.xml</updateDocumentFile>
+  
+  <!--
+    profileDocumentFile:
+    this defines XML document containing the list of which test assertions to execute
+  -->
+  <profileDocumentFile>profiles/basicProfile.xml</profileDocumentFile>
 
 </configuration>
