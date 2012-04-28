@@ -10,6 +10,21 @@
    -->   
   <invalidBaseURL>http://rhex.mitre.org:3000/records/NotValid</invalidBaseURL>  
   
+  <!--
+  URL must be to an XML document that the DocumentUpdate test can update.
+  Test expects an effectiveTime as a child element of the root element
+  such as the following:
+
+	<effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
+
+	or
+
+	<effectiveTime>
+	  <start>2005-02-09 05:00:00 -0500</start>
+	</effectiveTime>
+
+  otherwise test will be unable to update the given document
+  -->
   <updateDocumentUrl>http://rhex.mitre.org:3000/records/2/conditions/4f735368d7d76a43b20000d6</updateDocumentUrl>
   
   <documentSection>vital_signs</documentSection>  
