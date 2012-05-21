@@ -1,7 +1,6 @@
 package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
@@ -55,14 +54,11 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 		try {
 			URI baseURL = context.getBaseURL("root.xml");
 			if (log.isDebugEnabled()) System.out.println("\nPUT URL: " + baseURL);
-			HttpPut httppost = new HttpPut(baseURL);
-			HttpResponse response = context.executeRequest(client, httppost);
+			HttpPut request = new HttpPut(baseURL);
+			HttpResponse response = context.executeRequest(client, request);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("PUT Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+			if (code != 405 && log.isDebugEnabled()) {
+                dumpResponse(request, response, code == 200);
 			}
 			assertEquals(405, code);
 			setStatus(StatusEnumType.SUCCESS);
@@ -70,8 +66,6 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 			throw new TestException(e);
 		} catch (URISyntaxException e) {
 			throw new TestException(e);
-		//} catch (JDOMException e) {
-			//throw new TestException(e);
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
