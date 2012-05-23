@@ -235,7 +235,6 @@ public class Context {
 		return validatingBuilder;
 	}
 
-	//private HttpClient client;
 	public HttpClient getHttpClient() {
 		HttpClient client = new DefaultHttpClient();
 		if (proxy != null) {
