@@ -32,7 +32,10 @@ public class TestExcecutionPlan extends TestCase {
 		tests.add(test6);
 		// test7 is explicitly not loaded so test8 can fail to load
 		tests.add(test8);
-		for(TestUnit test : tests) {
+
+        // loading
+        System.out.println("Expected ERROR: Duplicate id [1.0.1] found with test TestDup1");
+        for(TestUnit test : tests) {
 			// pre-load these tests
 			loader.load(test);
 		}
@@ -129,8 +132,10 @@ public class TestExcecutionPlan extends TestCase {
 		set.add(test4);
 
 		ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
-		exec.execute();
-		List<TestUnit> list = exec.getList();
+        System.out.println("Expected: ERROR: test2 [1.0.2] fails");
+
+        exec.execute();
+        List<TestUnit> list = exec.getList();
 		assertEquals(4, list.size());
 
 		// test1 passed, test2 fails, others won't exec
@@ -154,8 +159,9 @@ public class TestExcecutionPlan extends TestCase {
 		set.add(test5);
 		set.add(test1);
 
-		ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
-		exec.execute();
+        System.out.println("Expected: ERROR: Failed to set property on dependent test");
+        ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
+        exec.execute();
 		assertEquals(TestUnit.StatusEnumType.SUCCESS, test1.getStatus());
 		assertEquals(TestUnit.StatusEnumType.SKIPPED, test5.getStatus());
 		List<TestUnit> list = exec.getList();
@@ -201,7 +207,9 @@ public class TestExcecutionPlan extends TestCase {
 		System.out.println("\nXXX: testLoad");
 		resetTests(TestUnit.StatusEnumType.SUCCESS);
 		Set<TestUnit> set = Collections.<TestUnit>singleton(test8);
-		ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
+        // test7 is explicitly not loaded so test8 can fail to load
+        System.out.println("Expected: ERROR: Dependency class <Test7> not loaded");
+        ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
 		exec.execute();
 		assertEquals(TestUnit.StatusEnumType.SKIPPED, test8.getStatus());
 		List<TestUnit> list = exec.getList();
