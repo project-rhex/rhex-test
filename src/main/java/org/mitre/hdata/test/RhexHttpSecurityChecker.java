@@ -15,20 +15,17 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MITRE RHEX Patient Data Server HTTP request security handler implements
- * simple authentication using developer callback URL.
+ * MITRE RHEX Patient Data Server HTTP request security handler
+ * implements simple authentication using developer callback URL.
  *
  * @author Jason Mathews, MITRE Corp.
  * Date: 3/30/12 12:51 PM
@@ -43,30 +40,31 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 	 * Setups and initializes the HttpRequestChecker
 	 *
 	 * @param context   Application context
-	 */
+     * @throws IllegalArgumentException if setup/configuration fails
+     */
 	@Override
 	public void setup(Context context) {
 		log.debug("XXX: try callback to enable authentication");
-		final URI uri;
-		String target = "auth/developer/callback";
-		try {
-			URI baseURL = context.getBaseURL();
-			final int port = baseURL.getPort();
-			uri = port == -1 ? new URI(String.format("%s://%s/%s",
-						baseURL.getScheme(), baseURL.getHost(), target))
-					: new URI(String.format("%s://%s:%d/%s",
-						baseURL.getScheme(), baseURL.getHost(), port, target));
-		} catch (URISyntaxException e) {
-			log.error("", e);
-			return;
-		}
+
+        final URI uri = context.getPropertyAsURI("loginURL");
+        if (uri == null) {
+            log.error("loginURL property not defined");
+            return;
+        }
+
+        String loginEmail = context.getString("loginEmail");
+        String loginPassword = context.getString("loginPassword");
+        if (StringUtils.isBlank(loginEmail) || StringUtils.isBlank(loginPassword)) {
+            log.error("loginEmail and loginPassword properties are empty or missing");
+            return;
+        }
 
 		log.debug("POST auth URL: {}", uri);
 		HttpPost httppost = new HttpPost(uri);
 		httppost.setHeader("Cache-Control", "no-cache");
 		List<NameValuePair> formParams = new ArrayList<NameValuePair>(2);
-		formParams.add(new BasicNameValuePair("email", "testclient@mitre.org"));
-		formParams.add(new BasicNameValuePair("id", "testclient"));
+		formParams.add(new BasicNameValuePair("email", loginEmail));
+		formParams.add(new BasicNameValuePair("id", loginPassword));
 		final HttpResponse response;
 		HttpClient client = null;
 		HttpContext httpContext = localContext;
@@ -91,19 +89,8 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 			 <button type='submit'>Sign In</button>      </form>
 			 */
 			if (log.isDebugEnabled() || !checkAuth(response)) {
-				System.out.println(response.getStatusLine());
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				try {
-					System.out.println(EntityUtils.toString(response.getEntity()));
-				} catch (IOException e) {
-					log.warn("", e);
-				}
+                ClientHelper.dumpResponse(httppost, response, true);
 			}
-		} catch (UnsupportedEncodingException e) {
-			log.error("", e);
-			return;
 		} catch (IOException e) {
 			log.error("", e);
 			return;
@@ -153,11 +140,7 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 			HttpGet req = new HttpGet(target);
 			HttpResponse response = client.execute(req, localContext);
 			if (log.isTraceEnabled() || response.getStatusLine().getStatusCode() != 200) {
-				System.out.println(response.getStatusLine());
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				// System.out.println(EntityUtils.toString(response.getEntity()));
+                ClientHelper.dumpResponse(req, response, false);
 			}
 			//StatusLine statusLine = response.getStatusLine();
 			//return statusLine != null && statusLine.getStatusCode() == 200;
