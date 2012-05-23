@@ -139,15 +139,7 @@ public class DocumentCreateCheck extends BaseXmlTest {
 			final HttpEntity entity = response.getEntity();
 			if (log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
-				//System.out.println("GET Response status=" + code);
-				System.out.println("GET Response: " + response.getStatusLine());
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				if (entity != null) {
-					System.out.println("----------------------------------------");
-					System.out.println(EntityUtils.toString(entity));
-				}
+                dumpResponse(req, response, true);
 			}
 			if (code != 200) {
 				setStatus(StatusEnumType.FAILED, "Expected 200 HTTP status code but was: " + code);

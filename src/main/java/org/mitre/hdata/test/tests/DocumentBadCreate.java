@@ -115,17 +115,7 @@ public class DocumentBadCreate extends DocumentCreate {
 			int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
-				System.out.println("POST Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				/*
-				HttpEntity resEntity = response.getEntity();
-				if (resEntity != null) {
-					System.out.println("----------------------------------------");
-					System.out.println(EntityUtils.toString(resEntity));
-				}
-				*/
+                dumpResponse(post, response);
 			}
 
 			if (code == 400) {

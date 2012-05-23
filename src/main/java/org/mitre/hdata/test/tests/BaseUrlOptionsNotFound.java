@@ -74,19 +74,14 @@ public class BaseUrlOptionsNotFound extends BaseTest {
 			HttpOptions req = new HttpOptions(baseURL);
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			dumpResponse(req, response);
-			if (code != 404) {
-				if (log.isDebugEnabled()) {
-					HttpEntity entity = response.getEntity();
-					if (entity != null)
-						System.out.println("Entity: " + EntityUtils.toString(entity));
-					else
-						System.out.println("XXX: No body");
-				}
+            boolean dumpBody = false;
+            if (code != 404) {
+				if (log.isDebugEnabled()) dumpBody = true;
 				setStatus(StatusEnumType.FAILED, "Expected 404 HTTP status code but was: " + code);
 			} else {
 				setStatus(StatusEnumType.SUCCESS);
 			}
+            dumpResponse(req, response, dumpBody);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
