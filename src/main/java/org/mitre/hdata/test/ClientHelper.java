@@ -5,8 +5,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * @author Jason Mathews, MITRE Corp.
@@ -14,6 +21,46 @@ import org.apache.http.conn.params.ConnRoutePNames;
  * Date: 2/22/12 4:46 PM
  */
 public final class ClientHelper {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientHelper.class);
+
+    /**
+     * Dump HTTP Response status code and headers
+     *
+     * @param req Optional Http request may be null
+     * @param response Http Response, never null
+     */
+    public static void dumpResponse(HttpRequestBase req, HttpResponse response) {
+        dumpResponse(req, response, false);
+    }
+
+    /**
+     * Dump HTTP Response status code and headers
+     *
+     * @param req Optional Http request may be null
+     * @param response Http Response, never null
+     * @param dumpEntity True if want to dump the response body otherwise body entity is ignored
+     */
+    public static void dumpResponse(HttpRequestBase req, HttpResponse response, boolean dumpEntity) {
+        if (req != null)
+            System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
+        for (Header header : response.getAllHeaders()) {
+            System.out.println("\t" + header.getName() + ": " + header.getValue());
+        }
+        if (dumpEntity) {
+            HttpEntity entity = response.getEntity();
+            if (entity != null)
+                try {
+                    System.out.println("----------------------------------------");
+                    String bodyText = EntityUtils.toString(entity);
+                    System.out.println("Response body: " + bodyText);
+                } catch(Exception e) {
+                    log.warn("", e);
+                }
+            else
+                System.out.println("XXX: No body");
+        }
+    }
 
 	/**
 	 * Return content-type value with optional character encoding

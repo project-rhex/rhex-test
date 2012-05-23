@@ -3,15 +3,11 @@ package org.mitre.hdata.test;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -189,26 +185,11 @@ public abstract class BaseTest implements TestUnit {
 	}
 
 	protected void dumpResponse(HttpRequestBase req, HttpResponse response) {
-		 dumpResponse(req, response, false);
+        ClientHelper.dumpResponse(req, response, false);
 	}
 
 	protected void dumpResponse(HttpRequestBase req, HttpResponse response, boolean dumpEntity) {
-		if (req != null)
-			System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
-		for (Header header : response.getAllHeaders()) {
-			System.out.println("\t" + header.getName() + ": " + header.getValue());
-		}
-		if (dumpEntity) {
-			HttpEntity entity = response.getEntity();
-			if (entity != null)
-				try {
-					System.out.println("Entity: " + EntityUtils.toString(entity));
-				} catch(IOException e) {
-					log.warn("", e);
-				}
-			else
-				System.out.println("XXX: No body");
-		}
+        ClientHelper.dumpResponse(req, response, dumpEntity);
 	}
 
 	/**
