@@ -39,6 +39,7 @@ public interface HttpRequestChecker {
 	 * This is called once before any tests are executed.
 	 *
 	 * @param context   Application context
+     * @throws IllegalArgumentException if setup/configuration fails
 	 */
 	void setup(Context context);
 }
