@@ -2,7 +2,11 @@
 <configuration>
    
   <baseURL>http://rhex.mitre.org:3000/records/2</baseURL>
-  <HttpRequestChecker>org.mitre.hdata.test.RhexHttpSecurityChecker</HttpRequestChecker>
+  
+  <HttpRequestChecker>org.mitre.hdata.test.RhexHttpSecurityChecker</HttpRequestChecker>  
+  <loginURL>http://rhex.mitre.org:3000/auth/developer/callback</loginURL>
+  <loginEmail>user@mitre.org</loginEmail>
+  <loginPassword>password</loginPassword>
    
   <!--
 	<invalidBaseURL>set to invalid baseURL</invalidBaseURL>
@@ -35,5 +39,7 @@
 	<extension>http://projecthdata.org/extension/vital-sign</extension>  
 	<file>data/vitalSign.xml</file>
   </document>
+  
+  <profileDocumentFile>profiles/basicProfile.xml</profileDocumentFile>
 
 </configuration>
