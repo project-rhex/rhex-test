@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Jason Mathews, MITRE Corp.
@@ -28,7 +30,9 @@ public class Context {
 
 	private static final Logger log = LoggerFactory.getLogger(Context.class);
 
-	private SAXBuilder builder, validatingBuilder;
+    public static final String DEFAULT_USER = "defaultUser";
+
+    private SAXBuilder builder, validatingBuilder;
 
 	/** Validation feature id */
 	protected static final String VALIDATION_FEATURE =
@@ -69,7 +73,10 @@ public class Context {
 
 	private String baseUrlString; // cached copy of baseURL.toASCIIString()
 
-	@NonNull
+    private final Map<String, UserInfo> userMap = new HashMap<String, UserInfo>();
+    private String currentUser;
+
+    @NonNull
 	public URI getBaseURL() {
 		return baseURL;
 	}
@@ -143,6 +150,8 @@ public class Context {
 				Class httpClass = Class.forName(httpRequestCheckerClass);
 				httpRequestChecker = (HttpRequestChecker) httpClass.newInstance();
 				httpRequestChecker.setup(this);
+                if (httpRequestChecker.getCurrentUser(this) != null)
+                    currentUser = DEFAULT_USER;
 			} catch (ClassNotFoundException e) {
 				throw new IllegalArgumentException(e);
 			} catch (InstantiationException e) {
@@ -163,6 +172,13 @@ public class Context {
 		return config != null ? config.getString(key) : null;
 	}
 
+    public void setProperty(String key, String value) {
+        if (config != null) {
+            System.out.printf("XXX: set prop %s %s%n", key, value);//debug
+            config.setProperty(key, value);
+        }
+    }
+
 	/**
 	 * Get named property as File from config.xml
 	 * @param key The configuration key
@@ -181,7 +197,7 @@ public class Context {
 			log.info("file {} does not exist or isn't regular file", file);
 			return null;
 		}
-		return file;
+        return file;
 	}
 
 	/**
@@ -264,4 +280,59 @@ public class Context {
 			return client.execute(request);
 		}
 	}
+
+    /**
+     * Get current active user identity if applicable
+     * @return user id (e.g. defaultUser) associated with active user context
+     *          if applicable otherwise null
+     */
+    public String getUser() {
+        return currentUser;
+    }
+
+    /**
+     *
+     * @param userId
+     * @return true if successful sets user context, false otherwise
+     */
+    public boolean setUser(String userId) {
+        if (httpRequestChecker != null) {
+            UserInfo userInfo = userMap.get(userId);
+            if(userInfo == null) {
+                String userEmail = config.getString(userId + ".email");
+                if (userEmail == null) {
+                    log.warn("user " + userId + " email not found in config");
+                    return false;
+                }
+                String password = config.getString(userId + ".password");
+                if (password == null) {
+                    log.warn("user " + userId + " password not found in config");
+                    return false;
+                }
+                userInfo = new UserInfo(userEmail, password);
+                userMap.put(userId, userInfo);
+            }
+            try {
+                //? currentUser = null; // null or keep last value ??
+                httpRequestChecker.setUser(this, userId, userInfo.email, userInfo.password);
+                if (userInfo.email.equals(httpRequestChecker.getCurrentUser(this))) {
+                    currentUser = userId;
+                    return true;
+                }
+            } catch(IllegalArgumentException e) {
+                log.warn("failed to set user", e);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static class UserInfo {
+        private final String email;
+        private final String password;
+        public UserInfo(String email, String password) {
+            this.email = email;
+            this.password = password;
+        }
+    }
 }
