@@ -83,7 +83,7 @@ public class DocumentNotFound extends BaseXmlTest {
 		final Context context = Loader.getInstance().getContext();
 		HttpClient client = context.getHttpClient();
 		try {
-			String section = sectionList.contains("medications") ? "medications" : sectionList.get(0);
+			String section = getTargetSection(sectionList);
 			URI baseURL = context.getBaseURL(section);
 			baseURL = new URI(baseURL.toASCIIString() + "/should_not_exist");
 			HttpGet req = new HttpGet(baseURL);
@@ -102,7 +102,9 @@ public class DocumentNotFound extends BaseXmlTest {
 				if (entity != null) {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					entity.writeTo(bos);
-					System.out.println("XXX: body\n" + bos.toString("UTF-8"));
+                    if (bos.size() > 0) {
+					    System.out.println("XXX: body\n" + bos.toString("UTF-8"));
+                    }
 				}
 			}
 			assertEquals(404, code);
@@ -118,5 +120,25 @@ public class DocumentNotFound extends BaseXmlTest {
 			client.getConnectionManager().shutdown();
 		}
 	}
+
+    private static String getTargetSection(List<String> sectionList) {
+        if (sectionList.isEmpty()) {
+            // should never have an empty list
+            return "medications";
+        }
+        // possible sections: c32, allergies, care_goals, conditions, encounters, immunizations, medical_equipment,
+        // medications, procedures, results, social_history, vital_signs, etc.
+        String[] sections = { "medications", "allergies", "results", "conditions", "encounters", "immunizations" };
+        for(String section : sections) {
+            if (sectionList.contains(section)) return section;
+        }
+        String section = "medications";
+        for (String aSection : sectionList) {
+            section = aSection;
+            // try to get non-c32 section which often has special handling
+            if (!"c32".equals(section)) break; // done
+        }
+        return section;
+    }
 
 }
