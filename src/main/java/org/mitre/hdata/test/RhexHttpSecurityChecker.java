@@ -122,7 +122,17 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 		}
 	}
 
-	private static boolean checkAuth(HttpResponse response) {
+    @Override
+    public void setUser(Context context, String userId, String userEmail, String userPassword) {
+        // not implemented
+    }
+
+    @Override
+    public String getCurrentUser(Context context) {
+        return null; // not implemented
+    }
+
+    private static boolean checkAuth(HttpResponse response) {
 		final StatusLine statusLine = response.getStatusLine();
 		if (statusLine == null || statusLine.getStatusCode() != 302) return false;
 		Header location = response.getFirstHeader("Location");

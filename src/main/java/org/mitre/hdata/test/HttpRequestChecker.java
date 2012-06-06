@@ -42,4 +42,21 @@ public interface HttpRequestChecker {
      * @throws IllegalArgumentException if setup/configuration fails
 	 */
 	void setup(Context context);
+
+    /**
+     * Set explicit user context by user email and password
+     *
+     * @param context   Application context
+     * @param userId
+     * @param userEmail
+     * @param userPassword   @throws IllegalArgumentException if setup/configuration fails
+     */
+    void setUser(Context context, String userId, String userEmail, String userPassword);
+
+    /**
+     * Get current active user identity if applicable
+     * @param context   Application context
+     * @return email address assigned to active user context if applicable otherwise null
+     */
+    String getCurrentUser(Context context);
 }
