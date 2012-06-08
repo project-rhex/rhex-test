@@ -220,7 +220,9 @@ public class DocumentUpdate extends BaseXmlTest {
 		return null;
 	}
 
-	private boolean validateContent(Context context, URI baseURL) throws JDOMException, IOException, TestException {
+	private boolean validateContent(Context context, URI baseURL)
+            throws JDOMException, IOException, TestException
+    {
 		Document doc = getXmlDocument(context, baseURL);
 		if (doc == null) return false;
 		final Element rootElement = doc.getRootElement();

@@ -135,7 +135,7 @@ public class DocumentNotFound extends BaseXmlTest {
         String section = "medications";
         for (String aSection : sectionList) {
             section = aSection;
-            // try to get non-c32 section which often has special handling
+            // try to get non-c32 section which may have special handling
             if (!"c32".equals(section)) break; // done
         }
         return section;
