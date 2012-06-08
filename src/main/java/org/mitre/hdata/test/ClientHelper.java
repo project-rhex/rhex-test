@@ -53,7 +53,11 @@ public final class ClientHelper {
                 try {
                     System.out.println("----------------------------------------");
                     String bodyText = EntityUtils.toString(entity);
-                    System.out.println("Response body: " + bodyText);
+                    if (bodyText.length() > 70)
+                        System.out.println("Response body:");
+                    else
+                        System.out.print("Response body: ");
+                    System.out.println(bodyText);
                 } catch(Exception e) {
                     log.warn("", e);
                 }
