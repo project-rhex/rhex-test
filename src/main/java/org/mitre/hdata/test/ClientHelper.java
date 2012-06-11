@@ -45,7 +45,10 @@ public final class ClientHelper {
         if (req != null)
             System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
         for (Header header : response.getAllHeaders()) {
-            System.out.println("\t" + header.getName() + ": " + header.getValue());
+            String name = header.getName();
+            // suppress set-cookie header in output unless debug enabled
+            if (log.isDebugEnabled() || !"Set-Cookie".equals(name))
+                System.out.println("\t" + name + ": " + header.getValue());
         }
         if (dumpEntity) {
             HttpEntity entity = response.getEntity();
