@@ -79,12 +79,7 @@ public class BaseUrlGetTest extends BaseXmlTest {
 			}
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-			}
+            dumpResponse(req, response, false);
 			validateContent(code, context, response);
 		} catch (JDOMException e) {
 			throw new TestException(e);
