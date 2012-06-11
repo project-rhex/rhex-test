@@ -47,9 +47,10 @@ public final class Loader {
 			// dump the config file to output
 			System.out.println("Config: " + configName);
 			try {
-				// strip comments and blank lines
+				// strip comments, passwords, and blank lines
 				final String content = IOUtils.toString(new FileReader(configFile))
 						.replaceAll("(?s)<!--.*?-->\r?\n?", "")
+                        .replaceAll("(?s)<password>[^>]+</password>", "")
 						.replaceAll("(?s)\\s*[\r\n]+", "\n");
 				System.out.println(content);
 			} catch(IOException e) {
@@ -133,6 +134,8 @@ public final class Loader {
 		load(new DocumentCreate());			// 6.4.2.2 [req=6.3.1.1]
 		load(new DocumentCreateCheck());		// 6.4.2.3 [req=6.4.2.2]
 		load(new DocumentBadCreate());			// 6.4.2.4 [req=6.3.1.1]
+
+		load(new SectionPut());             // 6.4.3 [req=6.4.1.1]
 
 		load(new DocumentTest());			// 6.5.1.1 [req=6.4.1.1]
 		load(new DocumentNotFound());			// 6.5.1.2 [req=6.4.1.1]
