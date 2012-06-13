@@ -28,7 +28,10 @@ public abstract class BaseTest implements TestUnit {
 
 	private final Set<TestUnit> depends = new TreeSet<TestUnit>();
 
-	// property
+    /**
+     * keepResponse property if true flags the test component to keep the
+     * HTTP response object so dependent tests can fetch it.
+     */
 	public static final String PROP_KEEP_RESPONSE_BOOL = "keepResponse";
 	
 	private List<Tuple> properties;
@@ -168,7 +171,7 @@ public abstract class BaseTest implements TestUnit {
 	 */
 	@NonNull
 	public String getName() {
-		return "default " + getId();
+		return getId();
 	}
 
 	protected boolean isKeepResponse() {
@@ -205,6 +208,7 @@ public abstract class BaseTest implements TestUnit {
 	 */
 	protected void setProperty(Class<? extends TestUnit> testClass, String key, Object value) {
 		/*
+		// checking properties on only declared dependent classes is enforced in ExecutionPlan.add()
 		if (!getDependencyClasses().contains(testClass)) {
 			throw new IllegalStateException("Test add dependency to class=" + testClass.getName());
 		}
@@ -250,7 +254,7 @@ public abstract class BaseTest implements TestUnit {
 	 * dependent on its results.
 	 */
 	public void cleanup() {
-		if (!keepResponse || status == StatusEnumType.FAILED) {
+		if (!keepResponse || status != StatusEnumType.SUCCESS) {
 			response = null; // clear response - no longer needed
 		} // else System.out.println("XXX: keep HTTP results"); // debug
 	}
