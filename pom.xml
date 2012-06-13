@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.mitre.hdata</groupId>
-	<artifactId>hDataTest</artifactId>
+	<groupId>org.mitre.test</groupId>
+	<artifactId>RhexTest</artifactId>
 	<version>1.0.0</version>
 	<dependencies>
 			<dependency>		
