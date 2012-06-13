@@ -1,9 +1,10 @@
-package org.mitre.hdata.test.tests;
+package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpDelete;
 import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +25,13 @@ import java.util.List;
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:45 AM
  */
-public class BaseUrlRootXmlPut extends BaseXmlTest {
+public class BaseUrlRootXmlDeleteTest extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlPost.class);
+	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlDeleteTest.class);
 
 	@NonNull
 	public String getId() {
-		return "6.3.2.2";
+		return "6.3.2.3";
 	}
 
 	@Override
@@ -40,7 +41,7 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 
 	@NonNull
 	public String getName() {
-		return "baseURL/root.xml PUT operation MUST NOT be implemented. Returns 405 status";
+		return "baseURL/root.xml DELETE operation MUST NOT be implemented. Returns 405 status";
 	}
 
 	@NonNull
@@ -53,12 +54,22 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 		HttpClient client = context.getHttpClient();
 		try {
 			URI baseURL = context.getBaseURL("root.xml");
-			if (log.isDebugEnabled()) System.out.println("\nPUT URL: " + baseURL);
-			HttpPut request = new HttpPut(baseURL);
-			HttpResponse response = context.executeRequest(client, request);
+			HttpDelete req = new HttpDelete(baseURL);
+			if (log.isDebugEnabled()) {
+				System.out.println("\nDELETE URL: " + req.getURI());
+				/*
+				for(Header header : req.getAllHeaders()) {
+					System.out.println("\t" + header.getName() + ": " + header.getValue());
+				}
+				*/
+			}
+			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (code != 405 && log.isDebugEnabled()) {
-                dumpResponse(request, response, code == 200);
+			if (log.isDebugEnabled()) {
+				System.out.println("Response status=" + code);
+				for (Header header : response.getAllHeaders()) {
+					System.out.println("\t" + header.getName() + ": " + header.getValue());
+				}
 			}
 			assertEquals(405, code);
 			setStatus(StatusEnumType.SUCCESS);

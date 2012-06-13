@@ -1,4 +1,4 @@
-package org.mitre.hdata.test.tests;
+package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpResponse;
@@ -15,18 +15,18 @@ import java.util.List;
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:45 AM
  */
-public class BaseUrlOptionsExtHeader extends BaseTest {
+public class BaseUrlOptionsHcpHeader extends BaseTest {
 
 	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlPost.class);
 
-	public BaseUrlOptionsExtHeader() {
+	public BaseUrlOptionsHcpHeader() {
 		// forces BaseUrlOptions test to keep its HttpResponse object after it executes
 		setProperty(BaseUrlOptions.class, PROP_KEEP_RESPONSE_BOOL, Boolean.TRUE);
 	}
 
 	@NonNull
 	public String getId() {
-		return "6.2.5.4";
+		return "6.2.5.3";
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class BaseUrlOptionsExtHeader extends BaseTest {
 
 	@NonNull
 	public String getName() {
-		return "OPTIONS on HDR baseURL MUST return X-hdata-extensions HTTP header";
+		return "OPTIONS on HDR baseURL MUST return X-hdata-hcp HTTP header";
 	}
 
 	@NonNull
@@ -62,9 +62,9 @@ public class BaseUrlOptionsExtHeader extends BaseTest {
 			return;
 		}
 
-		if (response.getFirstHeader("X-hdata-extensions") == null) {
-			if (log.isDebugEnabled()) System.out.println("ERROR: Must set required X-hdata-extensions HTTP header in response");
-			setStatus(StatusEnumType.FAILED, "Must set required X-hdata-extensions HTTP header in response");
+		if (response.getFirstHeader("X-hdata-hcp") == null) {
+			if (log.isDebugEnabled()) System.out.println("ERROR: Must set required X-hdata-hcp HTTP header in response");
+			setStatus(StatusEnumType.FAILED, "Must set required X-hdata-hcp HTTP header in response");
 			return;
 		}
 		/*

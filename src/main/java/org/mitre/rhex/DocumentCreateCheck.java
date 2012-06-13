@@ -1,4 +1,4 @@
-package org.mitre.hdata.test.tests;
+package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpEntity;

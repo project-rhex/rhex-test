@@ -1,24 +1,6 @@
-package org.mitre.hdata.test.tests;
+package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.jdom.Document;
-import org.jdom.JDOMException;
-import org.mitre.hdata.test.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * <pre>
