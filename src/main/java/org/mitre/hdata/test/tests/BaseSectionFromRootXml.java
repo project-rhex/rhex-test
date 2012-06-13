@@ -245,7 +245,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 
 	public void cleanup() {
 		super.cleanup();
-		if (!keepSectionDocs || getStatus() ==  TestUnit.StatusEnumType.FAILED) {
+		if (!keepSectionDocs || getStatus() != StatusEnumType.SUCCESS) {
 			documentMap.clear();
 		}
 	}
