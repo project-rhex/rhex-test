@@ -9,7 +9,7 @@
 	<import file="standard-build.xml" />	
 		
 	<target name="run" depends="compile" >
-        <java classname="org.mitre.hdata.test.Loader"
+        <java classname="org.mitre.test.Loader"
             fork="true">
 			<classpath>
 				<pathelement location="${build.classes}"/>
@@ -17,7 +17,7 @@
 				<pathelement location="src/main/resources"/>
 			  </classpath>
             <jvmarg value="-Xmx64m"/>			
-			<jvmarg value="-DconfigFile=${config.xml.file}"/> 			
+			<jvmarg value="-DconfigFile=${config.xml.file}"/>			
         </java>
     </target>  
 
