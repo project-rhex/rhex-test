@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
-import org.mitre.hdata.test.*;
+import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

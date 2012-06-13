@@ -4,7 +4,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.jdom.JDOMException;
-import org.mitre.hdata.test.*;
+import org.mitre.test.ClientHelper;
+import org.mitre.test.Context;
+import org.mitre.test.TestException;
 
 import java.io.IOException;
 

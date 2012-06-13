@@ -9,7 +9,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
-import org.mitre.hdata.test.*;
+import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

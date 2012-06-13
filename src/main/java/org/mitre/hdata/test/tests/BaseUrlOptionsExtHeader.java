@@ -2,9 +2,9 @@ package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpResponse;
-import org.mitre.hdata.test.BaseTest;
-import org.mitre.hdata.test.TestException;
-import org.mitre.hdata.test.TestUnit;
+import org.mitre.test.BaseTest;
+import org.mitre.test.TestException;
+import org.mitre.test.TestUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

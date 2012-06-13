@@ -2,11 +2,12 @@ package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpResponse;
-import org.mitre.hdata.test.*;
+import org.mitre.test.BaseTest;
+import org.mitre.test.TestException;
+import org.mitre.test.TestUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

@@ -1,20 +1,14 @@
 package org.mitre.hdata.test.tests;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpOptions;
-import org.jdom.Document;
-import org.mitre.hdata.test.*;
+import org.mitre.test.BaseTest;
+import org.mitre.test.TestException;
+import org.mitre.test.TestUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 

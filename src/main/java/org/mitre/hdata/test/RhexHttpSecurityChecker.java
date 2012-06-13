@@ -15,6 +15,9 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.mitre.test.ClientHelper;
+import org.mitre.test.Context;
+import org.mitre.test.HttpRequestChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
