@@ -8,9 +8,9 @@
 	the hData interface is conformant to the Basic Profile.
   </description>
   
-  <testAssertion class="org.mitre.hdata.test.tests.BaseUrlGetTest"		 id="6.2.1.4" />
-  <testAssertion class="org.mitre.hdata.test.tests.BaseUrlRootXml"		 id="6.3.1.1" />
-  
-  <testAssertion class="org.mitre.hdata.test.tests.BaseSectionFromRootXml" id="6.4.1.1" prereq="6.3.1.1" />
-  
+  <testAssertion class="org.mitre.rhex.BaseUrlGetTest"	 	id="6.2.1.4" />
+  <testAssertion class="org.mitre.rhex.BaseUrlOptions"	 	id="6.2.5.1" />
+  <testAssertion class="org.mitre.rhex.BaseUrlRootXml"	 	id="6.3.1.1" />
+  <testAssertion class="org.mitre.rhex.BaseSectionFromRootXml" id="6.4.1.1" prereq="6.3.1.1" />
+   
 </assertionProfile>
