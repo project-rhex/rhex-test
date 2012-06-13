@@ -1,4 +1,4 @@
-package org.mitre.hdata.test;
+package org.mitre.test;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.io.IOUtils;

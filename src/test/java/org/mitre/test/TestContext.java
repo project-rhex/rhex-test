@@ -1,9 +1,11 @@
-package org.mitre.hdata.test;
+package org.mitre.test;
 
 import junit.framework.TestCase;
 import org.apache.http.client.HttpClient;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
+import org.mitre.test.Context;
+import org.mitre.test.Loader;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;

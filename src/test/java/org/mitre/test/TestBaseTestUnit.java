@@ -1,6 +1,6 @@
-package org.mitre.hdata.test;
+package org.mitre.test;
 
-import org.mitre.hdata.test.StubTest.*;
+import org.mitre.test.StubTest.*;
 
 import junit.framework.TestCase;
 
