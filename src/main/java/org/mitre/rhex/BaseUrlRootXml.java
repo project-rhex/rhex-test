@@ -206,12 +206,14 @@ public class BaseUrlRootXml extends BaseXmlTest {
 				if (!(child instanceof Element)) continue;
 				Element section = (Element)child;
 				String id = StringUtils.trimToNull(section.getAttributeValue("extensionId")); // required
-				if (id == null || !extensions.contains(id)) {
+                if (id == null || !extensions.contains(id)) {
 					addWarning("section extensionId " + id + " violates HL7 constraint and must equal id in /hrf:extensions");
 					break;
 				} else {
 					String extension = idExtensionMap.get(id);
-					if (extension != null) {
+                    if (extension == null) {
+                        addWarning("section extensionId " + id + " violates HL7 constraint and must map to id in /hrf:extensions");
+                    } else {
 						String path = StringUtils.trimToNull(section.getAttributeValue("path"));
 						if (path != null) extensionPathMap.put(extension, path);
 					}
