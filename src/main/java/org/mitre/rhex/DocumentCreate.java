@@ -77,35 +77,27 @@ public class DocumentCreate extends BaseXmlTest {
 
 	@NonNull
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
-		return Collections.<Class<? extends TestUnit>> singletonList(BaseUrlRootXml.class); // 6.3.1.1
+        return Collections.<Class<? extends TestUnit>> singletonList(BaseSectionFromRootXml.class); // 6.4.1.1
 	}
 
 	public void execute() throws TestException {
-		// pre-conditions: for this test to be executed the prerequisite test BaseUrlRootXml must have passed
+		// pre-conditions: for this test to be executed the prerequisite test BaseSectionFromRootXml must have passed
 		// with 200 HTTP response and valid root.xml content.
-		TestUnit baseTest = getDependency(BaseUrlRootXml.class);
+		TestUnit baseTest = getDependency(BaseSectionFromRootXml.class);
 		if (baseTest == null) {
 			// assertion failed: this should never be null
-			log.error("Failed to retrieve prerequisite test: BaseUrlRootXml");
-			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test: 6.3.1.1");
+			log.error("Failed to retrieve prerequisite test: BaseSectionFromRootXml");
+			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test: 6.4.1.1");
 			return;
 		}
-		Map<String, String> extensionPathMap = ((BaseUrlRootXml)baseTest).getExtensionPathMap();
-		if (extensionPathMap.isEmpty()) {
-			log.error("Failed to retrieve prerequisite test results: BaseUrlRootXml");
-			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results: 6.3.1.1");
-			return;
-		}
-		final Context context = Loader.getInstance().getContext();
-		String extension = context.getString("document.extension");
-		if (StringUtils.isBlank(extension)) {
-			// check pre-conditions and setup
-			log.error("Failed to specify valid section extension property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid section extension property in configuration");
-			return;
-		}
-		/*
-		expecting:
+        List<String> sections = ((BaseSectionFromRootXml)baseTest).getSectionList();
+        if (sections.isEmpty()) {
+            log.error("Failed to retrieve prerequisite test results");
+            setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results: 6.4.1.1");
+            return;
+        }
+        /*
+		expecting list of section paths from the root.xml document
 
 		 <?xml version="1.0" encoding="UTF-8"?>
 		 <root xmlns="http://projecthdata.org/hdata/schemas/2009/06/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -122,12 +114,21 @@ public class DocumentCreate extends BaseXmlTest {
 		 </root>
 		 */
 
-		sectionPath = extensionPathMap.get(extension);
-		if (sectionPath == null) {
-			log.error("Failed to find section " + extension + " in root.xml");
-			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
+        final Context context = Loader.getInstance().getContext();
+        sectionPath = context.getString("document.section");
+		if (StringUtils.isBlank(sectionPath)) {
+			// check pre-conditions and setup
+			log.error("Failed to specify valid document/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
 			return;
 		}
+
+        if (!sections.contains(sectionPath)) {
+            // test pre-conditions
+            log.error("Failed to find section " + sectionPath + " in test results");
+            setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
+            return;
+        }
 
 		System.out.println("section path: " + sectionPath);
 		sendRequest(context);
@@ -231,9 +232,14 @@ public class DocumentCreate extends BaseXmlTest {
 		// => http://rhex.mitre.org:3000/records/1/vital_signs/4f7c90a2d7d76a2926000b7f
 		// [java] <link href="http://rhex.mitre.org:3000/records/1/vital_signs/4f7c90a2d7d76a2926000b7f" type="application/xml"/>
 		if (ind > 0) {
+            String oldvalue = location;
 			location = context.getBaseURL(sectionPath + location.substring(ind)).toASCIIString();
 			// log.debug("XXX: Location {}", location);
 			response.setHeader(header.getName(), location);
+            if (!oldvalue.equals(location)) {
+                log.warn("required to rewrite invalid location");
+                log.debug("XXX: rewrite bogus Location {} -> {}", oldvalue, location);
+            }
 		}
 		// debug end
 		//=========================================================
@@ -246,7 +252,7 @@ public class DocumentCreate extends BaseXmlTest {
 			System.out.println("executing request: " + req.getRequestLine());
 			HttpResponse getResponse = context.executeRequest(client, req);
 			int code = getResponse.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
+			if (code != 200 || log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
 				System.out.println("GET Response: " + getResponse.getStatusLine());
 				for (Header h : response.getAllHeaders()) {
