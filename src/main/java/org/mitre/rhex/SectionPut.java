@@ -72,36 +72,37 @@ public class SectionPut extends BaseTest {
 			return;
 		}
 		final Context context = Loader.getInstance().getContext();
-		String section = context.getString("documentSection");
+		String section = context.getString("document.section"); // e.g. "vital_signs"
 		if (StringUtils.isBlank(section)) {
 			// check pre-conditions and setup
-			log.error("Failed to specify valid documentSection property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid documentSection property in configuration");
+			log.error("Failed to specify valid document/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
 			return;
 		}
 		if (!sections.contains(section)) {
 			// test pre-conditions
-			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
+			setStatus(StatusEnumType.SKIPPED, "Unable to find section in test results");
 			return;
 		}
+
+        // -------------------------------------------------
+        // start the actual test
+        // -------------------------------------------------
 		HttpClient client = null;
 		try {
 			URI baseUrl = context.getBaseURL(section);
-			if (log.isDebugEnabled()) {
-				System.out.println("\nPUT URL: " + baseUrl);
-			}
+            System.out.println("\nPUT URL: " + baseUrl);
 			client = context.getHttpClient();
 			HttpPut request = new HttpPut(baseUrl);
 			HttpResponse response = context.executeRequest(client, request);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 405) {
-				dumpResponse(request,  response, log.isDebugEnabled());
+				dumpResponse(request, response, true);
 				setStatus(StatusEnumType.FAILED, "Expected 405 HTTP status code but was: " + code);
 				return;
 			}
-
 			if (log.isDebugEnabled()) {
-				dumpResponse(request,  response);
+				dumpResponse(request, response);
 			}
 			setStatus(StatusEnumType.SUCCESS);
 
