@@ -91,20 +91,13 @@ public class DocumentPut extends BaseTest {
 			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results");
 			return;
 		}
-		/*
-		Map<String, Document> docMap = ((BaseSectionFromRootXml)baseTest).getDocumentMap();
-		if (docMap.isEmpty()) {
-			log.error("Failed to retrieve prerequisite test");
-			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results");
-			return;
-		}
-		*/
 		final Context context = Loader.getInstance().getContext();
-		String documentSection = context.getString("documentSection");
-		if (StringUtils.isBlank(documentSection)) {
+		String documentSection = context.getString("document.section");
+        if (StringUtils.isBlank(documentSection)) {
 			// check pre-conditions and setup
-			log.error("Failed to specify valid documentSection property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid documentSection property in configuration");
+            // e.g. documentSection=vital_signs
+			log.error("Failed to specify valid document/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
 			return;
 		}
 		if (!sections.contains(documentSection)) {
@@ -112,19 +105,11 @@ public class DocumentPut extends BaseTest {
 			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
 			return;
 		}
-		/*
-		Document doc = docMap.get(documentSection);
-		if (doc == null) {
-			// test pre-conditions
-			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
-			return;
-		}
-		*/
 		HttpClient client = null;
 		try {
 			// create a documentname URL for an existing section that does not already exist
 			String documentPath = Long.toHexString(System.currentTimeMillis());
-			URI baseUrl = context.getBaseURL(documentSection + "/" + documentPath);
+    		URI baseUrl = context.getBaseURL(documentSection + "/" + documentPath);
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + baseUrl);
 				System.out.println("documentPath=" + documentPath);
@@ -141,12 +126,13 @@ public class DocumentPut extends BaseTest {
 			// formParams.add(new BasicNameValuePair("document", ""));
 			// request.setEntity(new UrlEncodedFormEntity(formParams));
 
-			File updateDocument = context.getPropertyAsFile("updateDocumentFile");
+			File updateDocument = context.getPropertyAsFile("document.file");
 			if (updateDocument != null) {
 				log.debug("use file input: {}", updateDocument);
 				request.setEntity(new FileEntity(updateDocument, MIME_APPLICATION_XML));
 			} else {
 				StringEntity entity = new StringEntity("plain text", HTTP.PLAIN_TEXT_TYPE, "UTF-8");
+                // this should generate a 400 error
 				request.setEntity(entity);
 			}
 			HttpResponse response = context.executeRequest(client, request);
