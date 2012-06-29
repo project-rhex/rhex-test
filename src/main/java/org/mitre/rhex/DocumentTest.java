@@ -62,7 +62,7 @@ public class DocumentTest extends BaseXmlTest {
 
 	@NonNull
 	public String getId() {
-		return "6.5.1.1";
+		return "6.5.1.2";
 	}
 
 	@Override
@@ -200,7 +200,7 @@ public class DocumentTest extends BaseXmlTest {
 		if (entity == null) {
 			// no body
 			addWarning("encountered non-body response to document request");
-			log.info("no BODY in response for section: " + baseURL.getPath());
+			log.info("no BODY in response for document: " + baseURL.getPath());
 			return;
 		}
 		long len = entity.getContentLength();
@@ -220,14 +220,19 @@ public class DocumentTest extends BaseXmlTest {
 				log.warn("", e);
 			}
 		}
+        // if not XML do nothing
 	}
 
 	private static String getValidType(String type) {
 		if (type == null || type.length() == 0) return null;
 		int ind = type.indexOf(';');
 		if (ind == 0) return null;
-		if (ind > 0) type = type.substring(0, ind);
+		if (ind > 0) {
+            // strip off parameter values (e.g. charset=...) from mime type if present
+            type = type.substring(0, ind);
+        }
 		type = type.trim();
+        // regexp for mime-type (rfc2046) /^[a-z]+/\\S+/ matching mime type (e.g. application/rss+xml)
 		return mimePattern.matcher(type).matches() ? type : null;
 	}
 
