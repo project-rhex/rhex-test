@@ -62,8 +62,10 @@ public class BaseUrlGetTest extends BaseXmlTest {
 		// http://hc.apache.org/httpcomponents-client-ga/tutorial/html/fundamentals.html
 		final Context context = Loader.getInstance().getContext();
 		HttpClient client = context.getHttpClient();
-		try {
-			HttpGet req = new HttpGet(context.getBaseURL());
+        HttpGet req = null;
+        HttpResponse response = null;
+        try {
+			req = new HttpGet(context.getBaseURL());
 			String acceptHeader = getAcceptHeader();
 			if (acceptHeader != null) {
 				// System.out.println("set Accept=" + acceptHeader); // debug
@@ -77,23 +79,27 @@ public class BaseUrlGetTest extends BaseXmlTest {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
 			}
-			HttpResponse response = context.executeRequest(client, req);
-			int code = response.getStatusLine().getStatusCode();
-            dumpResponse(req, response, false);
-			validateContent(code, context, response);
+			response = context.executeRequest(client, req);
+            if (log.isDebugEnabled()) {
+                dumpResponse(req, response, false);
+            }
+            validateContent(context, response);
 		} catch (JDOMException e) {
 			throw new TestException(e);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} finally {
 			client.getConnectionManager().shutdown();
+            if (response != null && !log.isDebugEnabled() && getStatus() != StatusEnumType.SUCCESS)
+                dumpResponse(req, response, false);
 		}
 	}
 
-	protected void validateContent(int code, Context context, HttpResponse response)
-			throws TestException, IOException, JDOMException {
-
-		if (code != 200) {
+	protected void validateContent(Context context, HttpResponse response)
+			throws TestException, IOException, JDOMException
+    {
+        int code = response.getStatusLine().getStatusCode();
+        if (code != 200) {
 			setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
 			return;
 		}
@@ -101,7 +107,8 @@ public class BaseUrlGetTest extends BaseXmlTest {
 		final HttpEntity entity = response.getEntity();
 		final String contentType = ClientHelper.getContentType(entity);
 		if (MIME_TEXT_HTML.equals(contentType)) {
-			throw new TestException("Expected application/atom+xml content-type but was: text/html");
+            setStatus(StatusEnumType.FAILED, "Expected application/atom+xml content-type but was: text/html");
+            return;
 		}
 		if (!MIME_APPLICATION_ATOM_XML.equals(contentType)) {
 			addWarning("Expected application/atom+xml content-type but was: " + contentType);

@@ -49,8 +49,9 @@ public class BaseUrlGetHtmlAcceptTest extends BaseUrlGetTest {
 	}
 
 	// expected response status code 405 or 200
-	protected void validateContent(int code, Context context, HttpResponse response) throws TestException, IOException, JDOMException {
-		// if response status code not 200 then can only be 405
+	protected void validateContent(Context context, HttpResponse response) throws TestException, IOException, JDOMException {
+        int code = response.getStatusLine().getStatusCode();
+        // if response status code not 200 then can only be 405
 		if (code == 405) {
 			// not implemented is a valid response
 			setStatus(StatusEnumType.SUCCESS);
