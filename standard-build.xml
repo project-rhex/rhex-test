@@ -134,7 +134,8 @@
 			<sysproperty key="basedir" file="${top.basedir}"/>
 			<jvmarg value="-DconfigFile=testConfig.xml"/>			
 			<assertions>
-			  <enable package="org.mitre.hdata.test"/>
+			  <enable package="org.mitre.test"/>
+			  <enable package="org.mitre.rhex"/>
 			</assertions>
 			<classpath>				
 				<pathelement path="${build.classes}"/>
