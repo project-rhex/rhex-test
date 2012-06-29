@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jdom.input.SAXBuilder;
+import org.mitre.test.impl.TextReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
@@ -33,6 +34,8 @@ public class Context {
     public static final String DEFAULT_USER = "defaultUser";
 
     private SAXBuilder builder, validatingBuilder;
+
+    private Reporter reporter;
 
 	/** Validation feature id */
 	protected static final String VALIDATION_FEATURE =
@@ -325,6 +328,19 @@ public class Context {
             }
         }
         return false;
+    }
+
+    @NonNull
+    public Reporter getReporter() {
+        if (reporter == null) {
+            reporter = new TextReporter();
+        }
+        return reporter;
+    }
+
+    public void setReporter(Reporter reporter) {
+        if (reporter == null) throw new NullPointerException();
+        this.reporter = reporter;
     }
 
     private static class UserInfo {

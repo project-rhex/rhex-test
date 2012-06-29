@@ -21,7 +21,6 @@ public class ExcecutionPlan {
 	private final LinkedList<TestUnit> list = new LinkedList<TestUnit>();
 	private final Set<Class<? extends TestUnit>> visited = new HashSet<Class<? extends TestUnit>>();
 	private final Loader loader = Loader.getInstance();
-	private long startTime;
 
 	public ExcecutionPlan(Iterator<TestUnit> it) {
 		while (it.hasNext()) {
@@ -36,10 +35,6 @@ public class ExcecutionPlan {
 	 */
 	public List<TestUnit> getList() {
 		return Collections.unmodifiableList(list);
-	}
-
-	public long getStartTime() {
-		return startTime;
 	}
 
 	private int add(TestUnit test) {
@@ -195,45 +190,48 @@ public class ExcecutionPlan {
 	}
 
 	public void execute() {
-		//SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        log.info("XXX: execute");
+        //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         final Context context = Loader.getInstance().getContext();
-        startTime = System.currentTimeMillis();
-		System.out.printf("\nExec Tests (%d) on %s%n", list.size(), new Date(startTime));
+        final Reporter reporter = context.getReporter();
+        assert(reporter != null);
+        reporter.executeStart();
 		OUTER: for(TestUnit test : list) {
-			System.out.printf("%nRun test: %s [%s]%n", test.getClass().getName(), test.getId());
+            reporter.startTest(test);
 			// assert status == null for all new tests
 			final StatusEnumType status = test.getStatus();
-			if (status != null) log.info("XXX: expected status to be null at start but was: " + status); // assertion
+			if (status != null) log.warn("XXX: assertion failed: expected status to be null at start but was: " + status);
 			// by the method of ordering tests by this ExecutionPlan all prerequisite tests are guaranteed
 			// to be run first so we need to first check if any prerequisite test failed in which case we
-			// cancel running this test and flag it PREREQ FAILED.
+			// cancel running this test and flag it PREREQ FAILED or SKIPPED
 			for (TestUnit aTest: test.getDependencies()) {
 				final StatusEnumType aTestStatus = aTest.getStatus();
 				if (aTestStatus == StatusEnumType.FAILED || aTestStatus ==  StatusEnumType.PREREQ_FAILED) {
                     String msg = "Prerequisite test " + aTest.getId() + " failed";
-                    System.out.println(msg);
 					test.setStatus(StatusEnumType.PREREQ_FAILED, msg);
 					// skip test because one of its prerequisite test failed
+                    reporter.stopTest(test);
 					continue OUTER;
 				}
                 if (aTestStatus == StatusEnumType.SKIPPED) {
-                    String msg = "Prerequisite test " + aTest.getId() + " skipped";
-                    System.out.println(msg);
-                    test.setStatus(StatusEnumType.SKIPPED, msg);
+                    test.setStatus(StatusEnumType.SKIPPED, "Prerequisite test " + aTest.getId() + " skipped");
                     // skip test because one of its prerequisite test was skipped
+                    reporter.stopTest(test);
                     continue OUTER;
                 }
 				if (aTestStatus != StatusEnumType.SUCCESS) {
-					log.error("XXX: wasn't expecting this situation: status=" + aTestStatus);
-					// TODO: if status other than SUCCESS (i.e. SKIPPED) should test execute ??
+                    // should never get this situation unless test is flawed
+                    test.setStatus(StatusEnumType.SKIPPED, "Prerequisite test " + aTest.getId() + " has non-success status");
+                    log.error("XXX: wasn't expecting this situation: status=" + aTestStatus);
+                    reporter.stopTest(test);
 					continue OUTER;
 				}
 			}
+
+            // at this point all pre-requisite tests have passed (status = SUCCESS)
             String contextUser = context.getUser();
 			try {
 				test.execute();
-				if (test.getStatus() == StatusEnumType.SUCCESS)
-					System.out.println("Test: OK");
 			} catch (TestException e) {
 				test.setStatus(StatusEnumType.FAILED, e.getMessage());
 				log.error("", e);
@@ -242,13 +240,9 @@ public class ExcecutionPlan {
 				log.error("", e);
 			} finally {
 				final StatusEnumType testStatus = test.getStatus();
-				if (testStatus == StatusEnumType.FAILED) {
-					System.out.println("XXX: Test *failed*");
-					String desc = test.getStatusDescription();
-					if (desc != null) System.out.println("Reason: " + desc); // debug
-				} else if (testStatus == null) {
+				if (testStatus == null) {
 					// assert status != null after execute() called without throwing an exception
-					log.error("status for test " + test.getId() + " is undefined after execution");
+					log.error("XXX: status for test " + test.getId() + " is undefined after execution");
 					test.setStatus(StatusEnumType.SKIPPED, "Unknown status after execution");
 				}
 				test.cleanup();
@@ -256,16 +250,10 @@ public class ExcecutionPlan {
                     log.info("restore user context={}", contextUser);
                     context.setUser(contextUser);
                 }
+                reporter.stopTest(test);
 			}
-			/*
-			final List<String> warnings = test.getWarnings();
-			if (!warnings.isEmpty()) {
-				for (String s : warnings) {
-					System.out.println("\t" + s);
-				}
-			}
-			*/
 		}
+        reporter.executeStop();
 	}
 
 }
