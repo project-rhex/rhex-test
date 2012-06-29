@@ -3,12 +3,12 @@
 
   <baseURL>http://localhost:3000/records/1</baseURL>
   
-  <!-- define an invalid URI for self-test with URI violating RFC 2396 -->
+  <!-- define an invalid URI for self-test with URI that violates RFC 2396 -->
   <invalidURL>http:foo;x|y</invalidURL>
-  
-  <profileDocumentFile>profiles/emptyProfile.xml</profileDocumentFile>
   
   <!-- create a file property of a file that does not exist -->
   <fileNotFound>dirNotFound/fileNotFound.xml</fileNotFound>
+  
+  <profileDocumentFile>profiles/emptyProfile.xml</profileDocumentFile>
 
 </configuration>
