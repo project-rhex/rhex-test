@@ -11,13 +11,15 @@
 	<target name="run" depends="compile" >
         <java classname="org.mitre.test.Loader"
             fork="true">
-			<classpath>
-				<pathelement location="${build.classes}"/>
-				<path refid="maven.runtime.classpath"/>
-				<pathelement location="src/main/resources"/>
-			  </classpath>
-            <jvmarg value="-Xmx64m"/>			
-			<jvmarg value="-DconfigFile=${config.xml.file}"/>			
+		<classpath>
+			<pathelement location="${build.classes}"/>
+			<path refid="maven.runtime.classpath"/>
+			<pathelement location="src/main/resources"/>
+		</classpath>
+		<jvmarg value="-Xmx64m"/>
+		<jvmarg value="-DconfigFile=${config.xml.file}"/>			
+		<arg value="-html"/>
+		<arg value="-out=out.htm"/>
         </java>
     </target>  
 
