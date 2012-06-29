@@ -82,7 +82,7 @@ public class BaseUrlRootXml extends BaseXmlTest {
 				}
 			}
 			HttpResponse response = context.executeRequest(client, req);
-			validateContent(context, response);
+			validateContent(context, req, response);
 		} catch (JDOMException e) {
 			throw new TestException(e);
 		} catch (IOException e) {
@@ -95,15 +95,14 @@ public class BaseUrlRootXml extends BaseXmlTest {
 		// System.out.println();
 	}
 
-	protected void validateContent(Context context, HttpResponse response)
+	protected void validateContent(Context context, HttpGet req, HttpResponse response)
 			throws TestException, IOException, JDOMException {
 
 		int code = response.getStatusLine().getStatusCode();
-		if (log.isDebugEnabled()) {
-			System.out.println("Response status=" + code);
-			for (Header header : response.getAllHeaders()) {
-				System.out.println("\t" + header.getName() + ": " + header.getValue());
-			}
+		if (code != 200 || log.isDebugEnabled()) {
+            if (!log.isDebugEnabled())
+                System.out.println("URL: " + req.getURI());
+            dumpResponse(req, response);
 		}
 		if (code != 200) {
 			setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
