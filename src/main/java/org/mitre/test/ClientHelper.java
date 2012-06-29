@@ -39,6 +39,9 @@ public final class ClientHelper {
     public static void dumpResponse(HttpRequestBase req, HttpResponse response, boolean dumpEntity) {
         if (req != null)
             System.out.printf("%s Response %s%n", req.getMethod(), response.getStatusLine());
+        else
+            System.out.println("Response " + response.getStatusLine());
+        System.out.println("Headers:");
         for (Header header : response.getAllHeaders()) {
             String name = header.getName();
             // suppress set-cookie header in output unless debug enabled
@@ -55,7 +58,8 @@ public final class ClientHelper {
                         System.out.println("Response body:");
                     else
                         System.out.print("Response body: ");
-                    System.out.println(bodyText);
+                    Loader.getInstance().getContext().getReporter().println(bodyText);
+                    //System.out.println(bodyText);
                 } catch(Exception e) {
                     log.warn("", e);
                 }

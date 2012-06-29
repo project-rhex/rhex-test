@@ -63,17 +63,15 @@ public class BaseUrlOptions extends BaseTest {
 		HttpClient client = context.getHttpClient();
 		try {
 			URI baseURL = context.getBaseURL();
-			if (log.isDebugEnabled()) System.out.println("\nOPTION URL: " + baseURL);
+            boolean debug = log.isDebugEnabled();
+            if (debug) System.out.println("\nOPTION URL: " + baseURL);
 			HttpOptions req = new HttpOptions(baseURL);
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("OPTION Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-			}
-
+            if(code != 200 || debug) {
+                if (!debug) System.out.println("URL: " + baseURL);
+                dumpResponse(req, response, debug);
+            }
 			assertEquals(200, code);
 			final HttpEntity entity = response.getEntity();
 			if (entity != null) {
@@ -82,7 +80,7 @@ public class BaseUrlOptions extends BaseTest {
 				long len = entity.getContentLength();
 				// minimum length expected is 66 bytes or a negative number if unknown
 				// assertTrue(len < 0 || len >= 66, "Expecting valid XML document for baseURL/root.xml; returned length was " + len);
-				if (log.isDebugEnabled() && len > 0) {
+				if (debug && len > 0) {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					try {
 						entity.writeTo(bos);
@@ -111,17 +109,17 @@ public class BaseUrlOptions extends BaseTest {
             All implementations MUST support OPTIONS on the baseURL of each HDR and return a status code of 200, along with
             following HTTP headers:
 
-			• The X-hdata-security HTTP header defined in section of this specification. The security mechanisms defined at the
+			ï¿½ The X-hdata-security HTTP header defined in section of this specification. The security mechanisms defined at the
 			baseURL are applicable to all child resources, i.e. to the entire HDR.
 
 				X-hdata-security: http://openid.net/connect/
 
-			•  An X-hdata-hcp HTTP header that contains a space separated list of the identifiers of the hData Content Profiles
+			ï¿½  An X-hdata-hcp HTTP header that contains a space separated list of the identifiers of the hData Content Profiles
 			supported by this implementation
 
 				X-hdata-hcp: http://projecthdata.org/hcp/greenCDA-CoC
 
-			• The X-hdata-extensions HTTP header contains a space separated list of the identifiers of the hData extensions
+			ï¿½ The X-hdata-extensions HTTP header contains a space separated list of the identifiers of the hData extensions
 			supported by this implementation independent of their presence in the root document at baseURL/root.xml (cf. section
 			2.2 in [1] describing the root document format for an explanation of the extensions in a root.xml)
 
