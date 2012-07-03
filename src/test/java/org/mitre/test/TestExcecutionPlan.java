@@ -2,6 +2,7 @@ package org.mitre.test;
 
 import junit.framework.TestCase;
 import org.mitre.test.StubTest.*;
+import org.mitre.test.impl.HtmlReporter;
 
 import java.util.*;
 
@@ -12,7 +13,7 @@ import java.util.*;
 public class TestExcecutionPlan extends TestCase {
 
 	private final static Loader loader = Loader.getInstance();
-	private final static List<StubTest> tests = new ArrayList<StubTest>(4);
+	private final static List<StubTest> tests = new ArrayList<StubTest>(8);
 	private final static Test1 test1 = new Test1();
 	private final static Test2 test2 = new Test2();
 	private final static Test3 test3 = new Test3();
@@ -220,7 +221,55 @@ public class TestExcecutionPlan extends TestCase {
 		assertEquals(0, list.size());
 	}
 
-	private void resetTests(TestUnit.StatusEnumType testStatus) {
+    public void testHtmlReporter() {
+        System.out.println("\nXXX: testHtmlReporter");
+        Context context = loader.getContext();
+        System.out.println("Expected: ERROR: Failed to set property on on non-dependent test");
+        Reporter oldReporter = context.getReporter();
+        HtmlReporter reporter = new HtmlReporter();
+        try {
+            reporter.setOutputFile("test.html");
+        } catch (Exception e) {
+            // ignore
+        }
+
+        context.setReporter(reporter);
+        try {
+            reporter.setup();
+
+            Set<TestUnit> set = new LinkedHashSet<TestUnit>(7);
+            set.add(test1);
+            set.add(test2);
+            set.add(test3);
+            set.add(test4);
+            set.add(test5);
+            set.add(test6);
+            set.add(test8);
+
+            resetTests(TestUnit.StatusEnumType.SUCCESS);
+            reporter.startGroup("Build Execution Plan");
+            ExcecutionPlan exec = new ExcecutionPlan(set.iterator());
+            reporter.endGroup();
+
+            exec.execute();
+
+            int status = reporter.generateSummary();
+            assertEquals(0, status);
+
+            assertTrue(reporter.getStartTime() > 0);
+
+            // only 4 of the 7 tests are executed
+            List<TestUnit> list = exec.getList();
+            assertEquals(4, list.size());
+
+        } finally {
+            // close reporter and reset original reporter
+            reporter.close();
+            context.setReporter(oldReporter);
+        }
+    }
+
+    private void resetTests(TestUnit.StatusEnumType testStatus) {
 		for(StubTest test : tests) {
 			test.setStatus(null, null);
 			test.execState = false;
