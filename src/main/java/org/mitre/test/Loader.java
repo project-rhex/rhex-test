@@ -98,7 +98,7 @@ public final class Loader {
                         .replaceAll("(?s)<!--.*?-->\r?\n?", "")
                         .replaceAll("(?s)<password>[^>]+</password>", "")
                         .replaceAll("(?s)\\s*[\r\n]+", "\n");
-                reporter.println(content);
+                System.out.println(content);
             } catch(IOException e) {
                 log.debug("", e);
             } finally {

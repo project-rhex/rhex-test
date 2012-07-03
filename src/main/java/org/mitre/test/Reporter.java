@@ -7,9 +7,9 @@ import java.io.IOException;
  * implementations of this interface.
  * <p/>
  * Individual tests should not need to know the details of any given Reporter
- * implementation, except if the output could contain HTML or XML tags in which
- * case special formatting might be required and test should call the {@link
- * #println(String)} method rather than write to System.out directly.
+ * implementation. Tests can simply write output to System.out or using Logger.
+ * Special handling and formatting for output should be hidden in implementation
+ * of the Reporter instance.
  *
  * @author Jason Mathews, MITRE Corp.
  * Date: 6/28/12 8:46 AM
@@ -46,12 +46,6 @@ public interface Reporter {
      * @throws IOException  if an I/O error occurs.
      */
     void setOutputFile(String outFile) throws IOException;
-
-    /**
-     * Write line to output report. Subclass may implement special processing.
-     * @param s  The <code>String</code> to be printed.
-     */
-    void println(String s);
 
     /**
      * Start a new group or section in the report

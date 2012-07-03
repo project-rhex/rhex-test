@@ -13,6 +13,11 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
 import org.apache.commons.lang.StringUtils;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Date;
 import java.util.Set;
 
@@ -30,6 +35,8 @@ public class HtmlReporter extends AbstractReporter {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(HtmlReporter.class);
 
     private boolean inPreBlock;
+    private boolean htmlMode; // flag to disable HTML escaping in inPreBlock mode
+
     private MetaAppender appender;
 
     /**
@@ -180,15 +187,6 @@ public class HtmlReporter extends AbstractReporter {
             System.out.println("<BR>Reason: " + desc); // debug
         }
         System.out.println("<P>");
-    }
-
-    /**
-     * Write String to output report. HTML escape string if needed.
-     * @param s  The <code>String</code> to be printed.
-     */
-    @Override
-    public void println(String s) {
-        System.out.println(escapeHtml(s));
     }
 
     /**
@@ -346,6 +344,14 @@ public class HtmlReporter extends AbstractReporter {
         return buf.toString();
     }
 
+    @Override
+    public void setOutputFile(String outFile) throws IOException {
+        FileOutputStream fos = new FileOutputStream(outFile);
+        outputStream = new HtmlPrintStream(fos);
+        origSysOut = System.out;
+        System.setOut(outputStream);
+    }
+
     private class MetaAppender extends AppenderSkeleton {
 
         @Override
@@ -368,9 +374,11 @@ public class HtmlReporter extends AbstractReporter {
                 }
             }
             // make ERROR bold
-            if (event.getLevel() == Level.ERROR || event.getLevel() == Level.FATAL)
+            if (event.getLevel() == Level.ERROR || event.getLevel() == Level.FATAL) {
+                htmlMode = true;
                 System.out.printf("<b><font color='red'>%s</font></b>", event.getLevel());
-            else
+                htmlMode = false;
+            } else
                 System.out.print(event.getLevel());
             if (msg != null) {
                 System.out.print(msg.startsWith("(") ? " " : ": ");
@@ -398,4 +406,16 @@ public class HtmlReporter extends AbstractReporter {
 
     }
 
+    private class HtmlPrintStream extends PrintStream {
+        public HtmlPrintStream(OutputStream os) {
+            super(os);
+        }
+        public void print(String s) {
+            // escape string as safe HTML if inPreBlock flag is true and htmlMode is false
+            if (s != null && inPreBlock && !htmlMode && s.indexOf('<') > -1) {
+                s = escapeHtml(s);
+            }
+            super.print(s);
+        }
+    }
 }

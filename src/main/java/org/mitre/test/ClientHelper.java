@@ -58,8 +58,7 @@ public final class ClientHelper {
                         System.out.println("Response body:");
                     else
                         System.out.print("Response body: ");
-                    Loader.getInstance().getContext().getReporter().println(bodyText);
-                    //System.out.println(bodyText);
+                    System.out.println(bodyText);
                 } catch(Exception e) {
                     log.warn("", e);
                 }

@@ -174,16 +174,6 @@ public class TextReporter extends AbstractReporter {
     }
 
     /**
-     * Write line to output report. Subclass may implement special processing.
-     * @param s  The <code>String</code> to be printed.
-     */
-    @Override
-    public void println(String s) {
-        // no special handling needed - just pass thru to System.out
-        System.out.println(s);
-    }
-
-    /**
      * Start a new group or section in the report
      * @param title  Title of group, value can be null if not relevant
      */
