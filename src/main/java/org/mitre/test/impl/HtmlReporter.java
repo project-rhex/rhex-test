@@ -3,8 +3,15 @@ package org.mitre.test.impl;
 import org.mitre.test.Loader;
 import org.mitre.test.TestUnit;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LocationInfo;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
+
 import org.apache.commons.lang.StringUtils;
 import java.util.Date;
 import java.util.Set;
@@ -12,21 +19,29 @@ import java.util.Set;
 /**
  * HTML output report writer.
  *
+ * Output writer is integrated with the logger system such that all logged events
+ * are written to output file as well.
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 6/28/12 8:47 AM
  */
 public class HtmlReporter extends AbstractReporter {
 
-    private static final Logger log = LoggerFactory.getLogger(HtmlReporter.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(HtmlReporter.class);
 
-    private long startTime, elapsed;
+    private boolean inPreBlock;
+    private MetaAppender appender;
 
     /**
      * Sets up the reporter.
      * This method is called before any other methods are called with the exception of {@link #setOutputFile}.
+     *
+     * @throws IllegalStateException if executeStart(), startTest(), or startGroup() are called before setup() or
+     *      if setup is called more than once
      */
     @Override
     public void setup() {
+        if (inPreBlock || startTime != 0 || appender != null) throw new IllegalStateException();
         System.out.println("<html>");
         System.out.println("<head><title>Interoperability Conformance Test Report</title></head>");
         System.out.println("<body>");
@@ -39,7 +54,13 @@ public class HtmlReporter extends AbstractReporter {
         System.out.println("<li><B><a href='#summary'>Conformance Test Report</a></B>");
         System.out.println("</ol>"); // <HR>
 
-        // TODO: set custom handler on logger
+        // Setup Appender programmatically
+        Logger root = Logger.getRootLogger(); //Get the root logger
+        if (root != null) {
+            appender = new MetaAppender();
+            appender.setThreshold(Level.DEBUG);
+            root.addAppender(appender);
+        }
     }
 
     /**
@@ -48,6 +69,7 @@ public class HtmlReporter extends AbstractReporter {
      */
     @Override
     public void startGroup(String title) {
+        assert(!inPreBlock);
         System.out.println("<hr>");
         if (title != null) {
             int ind = title.indexOf(' ');
@@ -55,6 +77,7 @@ public class HtmlReporter extends AbstractReporter {
             System.out.printf("<h2><a name='%s'>%s</a></h2>%n", name.toLowerCase(), title);
         }
         System.out.println("<pre>");
+        inPreBlock = true;
     }
 
     /**
@@ -62,6 +85,8 @@ public class HtmlReporter extends AbstractReporter {
      */
     @Override
     public void endGroup() {
+        assert(inPreBlock);
+        inPreBlock = false;
         System.out.println("</pre>");
     }
 
@@ -70,6 +95,7 @@ public class HtmlReporter extends AbstractReporter {
      */
     @Override
     public void executeStart() {
+        assert(!inPreBlock);
         startTime = System.currentTimeMillis();
         final Loader loader = Loader.getInstance();
         System.out.println("<hr><h2><a name='exec'>Execution</a></h2>");
@@ -83,21 +109,26 @@ public class HtmlReporter extends AbstractReporter {
      */
     @Override
     public void executeStop() {
-        elapsed = System.currentTimeMillis() - startTime;
+        assert(!inPreBlock);
+        elapsedTime = System.currentTimeMillis() - startTime;
         System.out.println("</ol>");
         //System.out.println("</pre>");
     }
 
     @Override
     public void startTest(TestUnit test) {
+        assert(!inPreBlock);
         // System.out.println("<hr width='50%'>");
         System.out.printf("<li><b><a name='%s'>Run test: %s [<a href='#s%s'>%s</a>]</a></b>%n",
                 test.getId(), test.getClass().getName(), test.getId(), test.getId());
         System.out.print("<pre>");
+        inPreBlock = true;
     }
 
     @Override
     public void stopTest(TestUnit test) {
+        assert(inPreBlock);
+        inPreBlock = false;
         System.out.println("</pre>");
         TestUnit.StatusEnumType status = test.getStatus();
         String color = null;
@@ -166,12 +197,13 @@ public class HtmlReporter extends AbstractReporter {
      */
     @Override
     public int generateSummary() {
+        assert(!inPreBlock);
         int failed = 0;
         int testsRun = 0;
         int successCount = 0;
         int warningCount = 0 ;
         System.out.println("<HR>");
-        System.out.println("<h2><a name='#summary'>Conformance Test Report</a></h2>");
+        System.out.println("<h2><a name='summary'>Conformance Test Report</a></h2>");
         System.out.println("<table>");
         final Loader loader = Loader.getInstance();
         Set<TestUnit> tests = loader.getSortedSet();
@@ -224,7 +256,7 @@ public class HtmlReporter extends AbstractReporter {
                 color = "blue";
             }
 
-            System.out.printf("<TD valign='top'><a name='#s%s'/><a href='#%s'>%s</a>",
+            System.out.printf("<TD valign='top'><a name='s%s'/><a href='#%s'>%s</a>",
                     test.getId(), test.getId(), test.getId());
             System.out.printf("<TD bgcolor='%s'>%s%n", color, outStatus);
             String name = test.getName();
@@ -275,17 +307,27 @@ public class HtmlReporter extends AbstractReporter {
         }
         System.out.printf("<tr><td>Passed:<td>%d%n", successCount);
         System.out.printf("<tr><td>Failures:<td>%d<tr><td>Warnings:<td>%d", failed, warningCount);
-        System.out.printf("<tr><td>Time elapsed:<td>%.1f sec%n",elapsed / 1000.0);
+        System.out.printf("<tr><td>Time elapsed:<td>%.1f sec%n", elapsedTime / 1000.0);
         System.out.println("</table></blockquote><P>Return to <a href='#toc'>Table of Contents</a>");
 
         System.out.println("</body>");
         System.out.println("</html>");
 
-        if (outputStream != null) {
-            System.setOut(origSysOut); // restore original System.out
-            outputStream.close();
-        }
+	    close();
+
         return failed;
+    }
+
+    public void close() {
+        super.close();
+        if (appender != null) {
+            Logger root = Logger.getRootLogger();
+            if (root != null) {
+                root.removeAppender(appender);
+            }
+            appender.clearFilters();
+            appender = null;
+        }
     }
 
     private static String escapeHtml(String s) {
@@ -302,6 +344,58 @@ public class HtmlReporter extends AbstractReporter {
                 buf.append(c);
         }
         return buf.toString();
+    }
+
+    private class MetaAppender extends AppenderSkeleton {
+
+        @Override
+        protected void append(LoggingEvent event) {
+            String msg = StringUtils.trimToNull(event.getRenderedMessage());
+            ThrowableInformation ti = event.getThrowableInformation();
+            if (msg == null || ti != null) {
+                String oldMsg = msg;
+                LocationInfo location = event.getLocationInformation();
+                if (location != null) {
+                    msg = StringUtils.trimToNull(location.getClassName());
+                    if(msg != null) {
+                        String linenum = location.getLineNumber();
+                        if (linenum != null) {
+                            msg = "(" + msg + ":" + linenum + ")";
+                            if (oldMsg != null)
+                                msg += " - " + oldMsg;
+                        }
+                    }
+                }
+            }
+            // make ERROR bold
+            if (event.getLevel() == Level.ERROR || event.getLevel() == Level.FATAL)
+                System.out.printf("<b><font color='red'>%s</font></b>", event.getLevel());
+            else
+                System.out.print(event.getLevel());
+            if (msg != null) {
+                System.out.print(msg.startsWith("(") ? " " : ": ");
+                System.out.println(msg);
+            } else {
+                System.out.println();
+            }
+            if (ti != null) {
+                Throwable throwable = ti.getThrowable();
+                if (throwable != null) {
+                    if (!inPreBlock) System.out.print("<pre>");
+                    throwable.printStackTrace(System.out);
+                    if (!inPreBlock) System.out.println("</pre>");
+                }
+            }
+        }
+
+        public void close() {
+            // nothing to do
+        }
+
+        public boolean requiresLayout() {
+            return false;
+        }
+
     }
 
 }
