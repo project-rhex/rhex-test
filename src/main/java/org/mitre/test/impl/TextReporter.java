@@ -21,8 +21,6 @@ public class TextReporter extends AbstractReporter {
 
     private static final Logger log = LoggerFactory.getLogger(TextReporter.class);
 
-    private long startTime, elapsed;
-
     /**
      * Sets up the reporter.
      * This method is called before any other methods are called with the exception of {@link #setOutputFile}.
@@ -48,7 +46,7 @@ public class TextReporter extends AbstractReporter {
      */
     @Override
     public void executeStop() {
-        elapsed = System.currentTimeMillis() - startTime;
+        elapsedTime = System.currentTimeMillis() - startTime;
     }
 
     /**
@@ -166,7 +164,7 @@ public class TextReporter extends AbstractReporter {
         }
 
         System.out.printf("Tests run: %d, Failures: %d, Warnings: %d, Time elapsed: %.1f sec%n",
-                testsRun, failed, warningCount, elapsed / 1000.0);
+                testsRun, failed, warningCount, elapsedTime / 1000.0);
 
         if (outputStream != null) {
             System.setOut(origSysOut);
