@@ -76,4 +76,10 @@ public interface Reporter {
      */
     void stopTest(TestUnit test);
 
+    /**
+     * Closes this reporter and releases any system resources
+     * associated with it.
+     */
+    void close();
+
 }

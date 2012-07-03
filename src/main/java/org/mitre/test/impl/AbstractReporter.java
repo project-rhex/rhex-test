@@ -14,7 +14,18 @@ import java.io.PrintStream;
  */
 public abstract class AbstractReporter implements Reporter {
 
+    protected long startTime;
+    protected long elapsedTime;
+
     protected PrintStream outputStream, origSysOut;
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getElapsedTime() {
+        return elapsedTime;
+    }
 
     @Override
     public void setOutputFile(String outFile) throws IOException {
@@ -22,6 +33,14 @@ public abstract class AbstractReporter implements Reporter {
         outputStream = new PrintStream(fos);
         origSysOut = System.out;
         System.setOut(outputStream);
+    }
+
+    public void close() {
+        if (outputStream != null) {
+            System.setOut(origSysOut); // restore original System.out
+            outputStream.close();
+	        outputStream = null;
+        }
     }
 
 }
