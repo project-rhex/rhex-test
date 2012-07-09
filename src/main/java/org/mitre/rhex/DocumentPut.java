@@ -6,6 +6,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
@@ -129,9 +130,9 @@ public class DocumentPut extends BaseTest {
 			File updateDocument = context.getPropertyAsFile("document.file");
 			if (updateDocument != null) {
 				log.debug("use file input: {}", updateDocument);
-				request.setEntity(new FileEntity(updateDocument, MIME_APPLICATION_XML));
+				request.setEntity(new FileEntity(updateDocument, ContentType.APPLICATION_XML));
 			} else {
-				StringEntity entity = new StringEntity("plain text", HTTP.PLAIN_TEXT_TYPE, "UTF-8");
+				StringEntity entity = new StringEntity("plain text", ContentType.TEXT_PLAIN);
                 // this should generate a 400 error
 				request.setEntity(entity);
 			}

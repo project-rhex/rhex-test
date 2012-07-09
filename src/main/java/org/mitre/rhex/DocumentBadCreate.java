@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
 import org.mitre.test.Context;
@@ -91,7 +92,7 @@ public class DocumentBadCreate extends DocumentCreate {
 			//List<NameValuePair> formParams = new ArrayList<NameValuePair>(1);
 			//formParams.add(new BasicNameValuePair("content", "this is not XML"));
 			HttpPost post = new HttpPost(baseUrl);
-			StringEntity entity = new StringEntity("plain text", HTTP.PLAIN_TEXT_TYPE, "UTF-8");
+			StringEntity entity = new StringEntity("plain text", ContentType.TEXT_PLAIN);
 			post.setEntity(entity);
 			//post.setEntity(new UrlEncodedFormEntity(formParams));
 			System.out.println("executing request " + post.getRequestLine());

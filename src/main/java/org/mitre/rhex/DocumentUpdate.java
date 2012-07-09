@@ -8,6 +8,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -80,7 +81,7 @@ public class DocumentUpdate extends BaseXmlTest {
 
 	@NonNull
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
-		return Collections.emptyList(); // none ???
+		return Collections.emptyList();
 	}
 
 	public void execute() throws TestException {
@@ -109,9 +110,7 @@ public class DocumentUpdate extends BaseXmlTest {
 		HttpClient client = context.getHttpClient();
 		try {
 			HttpPut request = new HttpPut(baseURL);
-			StringEntity entity = new StringEntity(xmlContent, MIME_APPLICATION_XML, "UTF-8");
-			// StringEntity entity = new StringEntity(xmlContent);
-			// entity.setContentType(MIME_APPLICATION_XML);
+			StringEntity entity = new StringEntity(xmlContent, ContentType.APPLICATION_XML);
 			request.setEntity(entity);
 			/*
 			HTTP Request:

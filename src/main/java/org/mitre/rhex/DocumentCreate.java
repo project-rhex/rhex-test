@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.mitre.test.*;
 import org.slf4j.Logger;
@@ -148,7 +149,7 @@ public class DocumentCreate extends BaseXmlTest {
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + baseUrl);
 			}
-			FileEntity reqEntity = new FileEntity(fileToUpload, MIME_APPLICATION_XML);
+			FileEntity reqEntity = new FileEntity(fileToUpload, ContentType.APPLICATION_XML);
 			/*
 			MultipartEntity reqEntity = new MultipartEntity();
 			FileBody fileBody = new FileBody(fileToUpload, MIME_APPLICATION_XML);
