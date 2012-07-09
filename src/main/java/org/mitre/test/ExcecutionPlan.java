@@ -190,7 +190,6 @@ public class ExcecutionPlan {
 	}
 
 	public void execute() {
-        log.info("XXX: execute");
         //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         final Context context = Loader.getInstance().getContext();
         final Reporter reporter = context.getReporter();

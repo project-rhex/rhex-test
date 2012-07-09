@@ -242,6 +242,7 @@ public class DocumentUpdate extends BaseXmlTest {
 		HttpClient client = context.getHttpClient();
 		try {
 			HttpGet req = new HttpGet(baseURL);
+            // Accept definition -> http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 			req.setHeader("Accept", MIME_APPLICATION_XML);
 			// req.setHeader("If-Modified-Since", "Tue, 28 Feb 2012 14:33:15 GMT");
 			if (log.isDebugEnabled()) {
