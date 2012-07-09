@@ -344,12 +344,8 @@ public class HtmlReporter extends AbstractReporter {
         return buf.toString();
     }
 
-    @Override
-    public void setOutputFile(String outFile) throws IOException {
-        FileOutputStream fos = new FileOutputStream(outFile);
-        outputStream = new HtmlPrintStream(fos);
-        origSysOut = System.out;
-        System.setOut(outputStream);
+    protected PrintStream createPrintStream(OutputStream out) {
+        return new HtmlPrintStream(out);
     }
 
     private class MetaAppender extends AppenderSkeleton {

@@ -4,6 +4,7 @@ import org.mitre.test.Reporter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -30,14 +31,34 @@ public abstract class AbstractReporter implements Reporter {
     @Override
     public void setOutputFile(String outFile) throws IOException {
         FileOutputStream fos = new FileOutputStream(outFile);
-        outputStream = new PrintStream(fos);
-        origSysOut = System.out;
+        outputStream = createPrintStream(fos);
+        if (origSysOut == null) {
+            // save original
+            origSysOut = System.out;
+            // if call setOutputFile multiple times without first calling close()
+            // would lose original System.out so only change if value unset.
+        }
         System.setOut(outputStream);
     }
 
+    /**
+     * Create PrintStream. Allow subclasses to implement custom PrintStream classes
+     *
+     * @param  out        The output stream to which values and objects will be
+     *                    printed
+     * @return PrintStream
+     */
+    protected PrintStream createPrintStream(OutputStream out) {
+        return new PrintStream(out);
+    }
+
     public void close() {
+        if (origSysOut != null) {
+            // restore original System.out
+            System.setOut(origSysOut);
+            origSysOut = null;
+        }
         if (outputStream != null) {
-            System.setOut(origSysOut); // restore original System.out
             outputStream.close();
 	        outputStream = null;
         }
