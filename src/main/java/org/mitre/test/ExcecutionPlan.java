@@ -102,9 +102,11 @@ public class ExcecutionPlan {
 					return -1;
 				}
 			}
-			list.add(++idx, test);
+            //list.add(++idx, test);
+            list.addLast(test);
+            idx = list.size() - 1; // last index in list
 			System.out.printf("Add[%d]: %s%n", idx, aClass.getName());
-			return idx; // added successfully
+            return idx; // added successfully
 		}
 
 		// 3) multiple dependencies
