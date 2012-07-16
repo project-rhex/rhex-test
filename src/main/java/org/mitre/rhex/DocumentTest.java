@@ -49,6 +49,7 @@ public class DocumentTest extends BaseXmlTest {
 	private static final Logger log = LoggerFactory.getLogger(DocumentTest.class);
 
 	private static final boolean debugEnabled = log.isDebugEnabled();
+    private static final boolean traceEnabled = log.isTraceEnabled();
 
 	// regexp for mime-type (rfc2046); e.g. application/rss+xml, audio/L2, application/x-pkcs7-signature, etc.
 	private static final Pattern mimePattern = Pattern.compile("[a-z]+/\\S+");
@@ -154,24 +155,24 @@ public class DocumentTest extends BaseXmlTest {
 
 	private void checkDocument(Context context, String href, String type) throws URISyntaxException, IOException {
 		URI baseURL = new URI(href);
-		final boolean debugEnabled = log.isDebugEnabled();
 		String contentType = getValidType(type);
 		if (debugEnabled && type != null && !type.equals(contentType))
 			System.out.println("\tcontent type=" + contentType);
 		if (contentType == null)
-			contentType = "application/atom+xml, text/xml, application/xml, application/json, text/html, */*";
+			contentType = "application/atom+xml, application/xml, text/xml, application/json, text/html, */*";
 		else {
-			if (! MIME_APPLICATION_JSON.equals(contentType))
+			if (! MIME_APPLICATION_JSON.equals(contentType)) {
 				contentType += ", application/json";
+            }
 			contentType += ", */*";
 		}
 
 		HttpClient client = context.getHttpClient();
 		try {
-			System.out.println("GET URL=" + baseURL);
+            if (debugEnabled) System.out.println("GET URL=" + baseURL);
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", contentType);
-			System.out.println("Accept=" + contentType);
+            if (debugEnabled) System.out.println("Accept=" + contentType);
 			validateContent(baseURL, client.execute(req), context);
 		} finally {
 			client.getConnectionManager().shutdown();
@@ -187,7 +188,7 @@ public class DocumentTest extends BaseXmlTest {
 		if (code != 200) {
 			// setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
 			// HTTP Status-Code 406: Not Acceptable.
-			if (debugEnabled) {
+			if (traceEnabled) {
 				if (code == 406) System.out.println("Content-Type: " + response.getFirstHeader("Content-Type"));
 				else
 					for (Header header : response.getAllHeaders()) {

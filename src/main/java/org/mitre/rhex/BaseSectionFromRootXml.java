@@ -79,7 +79,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 
 	@NonNull
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
-		return Collections.<Class<? extends TestUnit>> singletonList(BaseUrlRootXml.class); // 6.3.1
+		return Collections.<Class<? extends TestUnit>> singletonList(BaseUrlRootXml.class); // 6.3.1.1
 	}
 
 	public void execute() throws TestException {
@@ -169,10 +169,10 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 		try {
 			System.out.println("\nGET URL=" + baseURL);
 			HttpGet req = new HttpGet(baseURL);
-			req.setHeader("Accept", "application/atom+xml, text/xml, application/xml");
+			req.setHeader("Accept", "application/atom+xml, application/xml, text/xml");
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
+			if (code != 200 || log.isDebugEnabled()) {
 				System.out.println("Response status=" + code);
 				for (Header header : response.getAllHeaders()) {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());

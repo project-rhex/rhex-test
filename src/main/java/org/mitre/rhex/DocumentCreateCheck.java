@@ -135,9 +135,9 @@ public class DocumentCreateCheck extends BaseXmlTest {
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			final HttpEntity entity = response.getEntity();
-			if (log.isDebugEnabled()) {
+			if (code != 200 || log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
-                dumpResponse(req, response, true);
+                dumpResponse(req, response, false);
 			}
 			if (code != 200) {
 				setStatus(StatusEnumType.FAILED, "Expected 200 HTTP status code but was: " + code);
@@ -198,6 +198,7 @@ public class DocumentCreateCheck extends BaseXmlTest {
 				Element link = (Element)entryChild;
 				String href = link.getAttributeValue("href"); // required
 				if (targetUrl.equals(href)) {
+                    log.debug("Found target href in ATOM feed");
 					return;
 				}
 			}

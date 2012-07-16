@@ -134,10 +134,10 @@ public class DocumentUpdate extends BaseXmlTest {
 			  - >> "[\r][\n]"
 			 */
 			HttpResponse response = context.executeRequest(client, request);
-			if (log.isDebugEnabled()) {
+            int code = response.getStatusLine().getStatusCode();
+			if (code != 200 || log.isDebugEnabled()) {
 				dumpResponse(request, response);
 			}
-			int code = response.getStatusLine().getStatusCode();
 
 			// check return code
 			assertEquals(200, code);
@@ -227,14 +227,15 @@ public class DocumentUpdate extends BaseXmlTest {
 		final Element rootElement = doc.getRootElement();
 		final Element effectiveTime = rootElement.getChild("effectiveTime", rootElement.getNamespace());
 		// final String effectiveTime = rootElement.getChildTextTrim("effectiveTime", rootElement.getNamespace());
-		if (effectiveTime != null) {
-			final Element start = effectiveTime.getChild("start", rootElement.getNamespace());
-			String elementValue = start != null ? start.getText()
-					: effectiveTime.getText();
-			assertEquals(targetText, elementValue);
-			return true;
-		}
-		return false;
+		if (effectiveTime == null) {
+            log.debug("Cannot find effectiveTime element");
+            return false;
+        }
+        final Element start = effectiveTime.getChild("start", rootElement.getNamespace());
+        String elementValue = start != null ? start.getText()
+                : effectiveTime.getText();
+        assertEquals(targetText, elementValue);
+        return true;
 	}
 
 	private Document getXmlDocument(Context context, URI baseURL) throws IOException, JDOMException {
@@ -252,11 +253,8 @@ public class DocumentUpdate extends BaseXmlTest {
 			}
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+			if (code != 200 || log.isDebugEnabled()) {
+                dumpResponse(req, response);
 			}
 			if (code != 200) {
 				addWarning("Unexpected HTTP response: " + code);
@@ -270,7 +268,7 @@ public class DocumentUpdate extends BaseXmlTest {
 			final String contentType = ClientHelper.getContentType(entity, false);
 			// content-type = text/xml OR application/xml
 			if (!MIME_TEXT_XML.equals(contentType) && !MIME_APPLICATION_XML.equals(contentType)) {
-				addWarning("Expected supported xml content-type but was: " + contentType);
+				addWarning("Expected supported XML content-type but was: " + contentType);
 				return null;
 			}
 			long len = entity.getContentLength();

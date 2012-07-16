@@ -182,6 +182,10 @@ public class DocumentCreate extends BaseXmlTest {
 			Server: thin 1.3.1 codename Triple Espresso
 			 */
 			if (code != 201) {
+                if (!log.isDebugEnabled()) {
+                    System.out.println("\nURL: " + baseUrl);
+                    dumpResponse(post, response, true);
+                }
 				setStatus(StatusEnumType.FAILED, "Expected 201 HTTP status code but was: " + code);
 				return;
 			}
@@ -240,6 +244,7 @@ public class DocumentCreate extends BaseXmlTest {
             if (!oldvalue.equals(location)) {
                 log.warn("required to rewrite invalid location");
                 log.debug("XXX: rewrite bogus Location {} -> {}", oldvalue, location);
+                addWarning("invalid location value requires rewrite");
             }
 		}
 		// debug end
@@ -255,14 +260,12 @@ public class DocumentCreate extends BaseXmlTest {
 			int code = getResponse.getStatusLine().getStatusCode();
 			if (code != 200 || log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
-				System.out.println("GET Response: " + getResponse.getStatusLine());
-				for (Header h : response.getAllHeaders()) {
-					System.out.println("\t" + h.getName() + ": " + h.getValue());
-				}
+                dumpResponse(req, getResponse, true);
 			}
 			//assertEquals(200, code);
-			if (code != 200)
+			if (code != 200) {
 				addWarning("Expected 200 HTTP status code but was: " + code);
+            }
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
