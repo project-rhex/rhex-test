@@ -52,19 +52,20 @@ public final class ClientHelper {
             HttpEntity entity = response.getEntity();
             if (entity != null)
                 try {
-                    System.out.println("----------------------------------------");
                     String bodyText = EntityUtils.toString(entity);
-                    if (bodyText.length() > 70)
+					System.out.println("----------------------------------------");
+                    if (bodyText != null && bodyText.length() > 68)
                         System.out.println("Response body:");
                     else
                         System.out.print("Response body: ");
                     System.out.println(bodyText);
                 } catch(Exception e) {
-                    log.warn("", e);
+                    log.debug("Failed to get response body", e);
                 }
             else
                 System.out.println("XXX: No body");
         }
+		System.out.println("----------------------------------------");
     }
 
 	/**
