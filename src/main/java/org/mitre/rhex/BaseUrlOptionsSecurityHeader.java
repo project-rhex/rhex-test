@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class BaseUrlOptionsSecurityHeader extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlPost.class);
+	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionsSecurityHeader.class);
 
 	public BaseUrlOptionsSecurityHeader() {
 		// forces BaseUrlOptions test to keep its HttpResponse object after it executes

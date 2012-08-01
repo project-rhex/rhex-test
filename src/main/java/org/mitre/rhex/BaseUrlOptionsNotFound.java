@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class BaseUrlOptionsNotFound extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlPost.class);
+	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionsNotFound.class);
 
 	@NonNull
 	public String getId() {
