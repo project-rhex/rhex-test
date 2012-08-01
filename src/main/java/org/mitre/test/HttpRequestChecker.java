@@ -23,7 +23,7 @@ public interface HttpRequestChecker {
 	 * Wrap <tt>HttpClient.execute()</tt> to pre/post-test HTTP requests for
 	 * any server specific implementation handling such as authentication.
 	 *
-	 * @param context   Application context
+	 * @param context   Application context, never null
 	 * @param client   the HttpClient, must never be null
 	 * @param request   the request to execute, must never be null
 	 *
@@ -39,24 +39,29 @@ public interface HttpRequestChecker {
 	 * Setups and initializes the HttpRequestChecker as appropriate.
 	 * This is called once before any tests are executed.
 	 *
-	 * @param context   Application context
+	 * @param context   Application context, never null
+	 *
      * @throws IllegalArgumentException if setup/configuration fails
+	 * @throws IllegalStateException if authentication fails (if applicable)
 	 */
 	void setup(Context context);
 
     /**
      * Set explicit user context by user email and password
      *
-     * @param context   Application context
-     * @param userId
-     * @param userEmail
-     * @param userPassword   @throws IllegalArgumentException if setup/configuration fails
-     */
+     * @param context   Application context, never null
+	 * @param userId	UserId or alias, never null
+     * @param userEmail	User e-mail address, never null
+     * @param userPassword	User password
+	 *
+	 * @throws IllegalArgumentException if setup/configuration fails
+	 * @throws IllegalStateException if authentication fails
+	 */
     void setUser(Context context, String userId, String userEmail, String userPassword);
 
     /**
      * Get current active user identity if applicable
-     * @param context   Application context
+     * @param context   Application context, never null
      * @return email address assigned to active user context if applicable otherwise null
      */
     String getCurrentUser(Context context);
