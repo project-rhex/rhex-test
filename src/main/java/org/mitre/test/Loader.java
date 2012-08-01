@@ -116,6 +116,8 @@ public final class Loader {
             }
         } catch (ConfigurationException e) {
             log.error("", e);
+		} catch (IllegalStateException e) {
+			log.error("", e);
         } catch (IllegalArgumentException e) {
             log.error("", e);
         } catch (IOException e) {
