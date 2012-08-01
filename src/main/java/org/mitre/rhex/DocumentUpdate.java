@@ -1,5 +1,6 @@
 package org.mitre.rhex;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
@@ -185,7 +186,10 @@ public class DocumentUpdate extends BaseXmlTest {
 				text = effectiveTime.getTextTrim();
 			}
 			System.out.println("target effectiveTime=" + text);
-			if (StringUtils.isBlank(text)) return null;
+			if (StringUtils.isBlank(text)) {
+				log.debug("Blank or empty time field");
+				return null;
+			}
 
 			//Pattern p = Pattern.compile("(\\d\\d\\d\\d)-"); // 2010-06-27 04:00:00 +0000
 			Pattern p = Pattern.compile("(\\S+) (\\d\\d):"); // 2010-06-27 *04*:00:00 +0000 -- select hour field
@@ -238,7 +242,10 @@ public class DocumentUpdate extends BaseXmlTest {
         return true;
 	}
 
-	private Document getXmlDocument(Context context, URI baseURL) throws IOException, JDOMException {
+	@CheckForNull
+	private Document getXmlDocument(Context context, URI baseURL)
+			throws IOException, JDOMException
+	{
 		HttpClient client = context.getHttpClient();
 		try {
 			HttpGet req = new HttpGet(baseURL);
