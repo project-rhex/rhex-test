@@ -110,6 +110,7 @@ public class Context {
 	 *
 	 * @param config
 	 * @throws IllegalArgumentException if any required configuration element is invalid or missing
+	 * @throws IllegalStateException if authentication fails
 	 * @exception NumberFormatException if any required string property does not contain a
 	 *               parsable integer.
 	 */
@@ -322,6 +323,9 @@ public class Context {
                     currentUser = userId;
                     return true;
                 }
+			} catch(IllegalStateException e) {
+				log.warn("failed to set user", e);
+				return false;
             } catch(IllegalArgumentException e) {
                 log.warn("failed to set user", e);
                 return false;
