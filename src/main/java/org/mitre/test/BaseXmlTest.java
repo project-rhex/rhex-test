@@ -28,7 +28,7 @@ import java.text.SimpleDateFormat;
  */
 public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 
-	public static final Logger log = LoggerFactory.getLogger(BaseXmlTest.class);
+	private final Logger log;
 
 	private static final String ISO_DATE_FMT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	private SimpleDateFormat dateFormatter;
@@ -43,6 +43,10 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	// private int xmlWarnings;
 	protected int xmlErrors;
 	protected boolean fatalXmlError;
+
+	public BaseXmlTest() {
+		log = LoggerFactory.getLogger(getClass());
+	}
 
 	public Document getDocument() {
 		return document;
@@ -63,9 +67,10 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	public void error(SAXParseException exception) throws SAXException {
 		xmlErrors++;
 		final String s = exception.getMessage();
-		addWarning(s);
+		addLogWarning(s);
+		//addWarning(s);
+		//log.debug("WARN: {}", s);
 		// System.out.println("ERROR: "  + s);
-		log.debug("ERROR: " + s);
 	}
 
 	public void fatalError(SAXParseException exception) throws SAXException {
@@ -74,7 +79,7 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 		final String s = exception.getMessage();
 		addWarning(s);
 		//System.out.println("ERROR: "  + s);
-		log.error("ERROR: " + s);
+		log.error(s);
 	}
 
 	protected SimpleDateFormat getDateFormatter() {
@@ -91,8 +96,9 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	}
 
 	/**
-	 * Get DOM from byte-array using validating parser if able to rewrite XML with target
-	 * namespace and schema location otherwise builds DOM from a non-validating parser.
+	 * Get DOM from byte-array using validating parser if able to rewrite XML
+	 * with target namespace schema location and schema location otherwise
+     * builds DOM from a non-validating parser.
 	 *
 	 * @param context Context
 	 * @param bos <code>ByteArrayOutputStream</code> to read from
@@ -205,7 +211,7 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 			}
 			final String contentType = ClientHelper.getContentType(entity);
 			if (!MIME_APPLICATION_ATOM_XML.equals(contentType)) {
-				addWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
+				addLogWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
 			}
 			/*
 			example section ATOM feed:

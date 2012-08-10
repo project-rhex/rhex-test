@@ -103,8 +103,10 @@ public interface TestUnit extends Comparable<TestUnit> {
 	 * Add warning message to the test results
 	 *
 	 * @param msg Warning message, ignored if null
+	 * @return <tt>true</tt> if this set did not already contain the specified
+	 *         message
 	 */
-	void addWarning(String msg);
+	boolean addWarning(String msg);
 
 	/**
 	 * Get list of warnings, empty if no warnings were generated during execution

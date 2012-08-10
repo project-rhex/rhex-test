@@ -18,7 +18,7 @@ import java.util.*;
  */
 public abstract class BaseTest implements TestUnit {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
+	private final Logger log;
 
 	private StatusEnumType status;
 	private String description;
@@ -35,6 +35,10 @@ public abstract class BaseTest implements TestUnit {
 	public static final String PROP_KEEP_RESPONSE_BOOL = "keepResponse";
 	
 	private List<Tuple> properties;
+
+	public BaseTest() {
+		log = LoggerFactory.getLogger(getClass());
+	}
 
 	/**
 	 * Associate a prerequisite that this test is dependent upon such that if any of its
@@ -108,10 +112,15 @@ public abstract class BaseTest implements TestUnit {
 	 * Add warning message to the test results
 	 *
 	 * @param msg Warning message, ignored if null
+	 * @return <tt>true</tt> if this set did not already contain the specified
+	 *         message
 	 */
-	public void addWarning(String msg) {
-		if (msg != null)
-			getWarnings().add(msg);
+	public boolean addWarning(String msg) {
+		return msg != null && getWarnings().add(msg);
+	}
+
+	public void addLogWarning(String msg) {
+		if (addWarning(msg) && log.isDebugEnabled()) log.warn(msg);
 	}
 
 	/**
@@ -200,7 +209,8 @@ public abstract class BaseTest implements TestUnit {
 	 * instance after the instance is created and added to the execution plan list as
 	 * well as any other dependencies for this test are also loaded. It is required
 	 * for the <tt>testClass</tt> argument called here to be contained in the list
-	 * returned by calling the TestUnit's {@link #getDependencyClasses} method.
+	 * returned by calling the TestUnit's {@link #getDependencyClasses} method
+	 * otherwise test will not be executed.
 	 *
 	 * @param testClass, never null
 	 * @param key key with which the specified value is to be associated
@@ -224,6 +234,7 @@ public abstract class BaseTest implements TestUnit {
 	 *
 	 * @param key key with which the specified value is to be associated
 	 * @param value value to be associated with the specified key
+	 * @throws IllegalArgumentException if key not handled by class
 	 * @exception ClassCastException if target type does not match expected type typically indicated
 	 * as ending of the property name constant (e.g. PROP_KEEP_RESPONSE_BOOL)
 	 */
@@ -233,7 +244,7 @@ public abstract class BaseTest implements TestUnit {
 			// setKeepContent((Boolean)value);
 			this.keepResponse = (Boolean)value;
 		} else {
-			// must be implemented by sub-classes if properties apply otherwise assertion error
+			// must be implemented by sub-classes if properties apply otherwise IllegalArgumentException
 			throw new IllegalArgumentException("setProperty " + key + " + not implemented");
 		}
 	}
