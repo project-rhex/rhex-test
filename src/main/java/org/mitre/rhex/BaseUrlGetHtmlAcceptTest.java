@@ -19,10 +19,10 @@ import java.io.IOException;
  * can be achieved using standard content negotiation (HTTP Accept header). This is not necessary for systems that are used
  * by non-person entities only.
  *
- * If the Accept header is non-existent, or set to * '/' * or application/atom+xml, the system MUST
+ * If the Accept header is non-existent, or set to star/star or application/atom+xml, the system MUST
  * return the Atom feed. For all other cases the format of the returned resource is left to the implementer.
  *
- * Status Code: 200, 404, 405(*)
+ * Status Code: 200, 404, 405(*), 406(*)
  * </pre>
  *
  * @author Jason Mathews, MITRE Corp.
@@ -51,9 +51,12 @@ public class BaseUrlGetHtmlAcceptTest extends BaseUrlGetTest {
 	// expected response status code 405 or 200
 	protected void validateContent(Context context, HttpResponse response) throws TestException, IOException, JDOMException {
         int code = response.getStatusLine().getStatusCode();
-        // if response status code not 200 then can only be 405
-		if (code == 405) {
-			// not implemented is a valid response
+        // if response status code not 200 then should be 405 (not implemented) or 406 (not acceptable)
+		// HTTP RFC: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+		// If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value,
+		// then the server SHOULD send a 406 (not acceptable) response.
+		if (code == 405 || code == 406) {
+			// 405 (not implemented) is a valid response
 			setStatus(StatusEnumType.SUCCESS);
 			return;
 		} else if (code != 200) {
