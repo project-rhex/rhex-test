@@ -38,7 +38,7 @@ public class TextReporter extends AbstractReporter {
         startTime = System.currentTimeMillis();
         final Loader loader = Loader.getInstance();
         System.out.println("\nExecution:");
-        System.out.printf("\nExec Tests (%d) on %s%n", loader.getCount(), new Date(startTime));
+        System.out.printf("%nExec Tests (%d) on %s%n", loader.getCount(), new Date(startTime));
     }
 
     /**
