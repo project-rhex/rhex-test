@@ -5,10 +5,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.util.EntityUtils;
+import org.mitre.rhex.security.RhexMitreOidcSecurityChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * @author Jason Mathews, MITRE Corp.
@@ -116,6 +121,69 @@ public final class ClientHelper {
 		if (contentType.endsWith("/xml")) return true; // e.g. text/xml, application/xml
 		// REVIEW: missing any other XML mime types that may appear in section ATOM feeds ?
 		return false;
+	}
+
+	/**
+	 * Get redirect location from response header and return as URI if available.
+	 *
+	 * @param response the HTTP response, never null
+	 *
+	 * @return URI for redirect location
+	 *
+	 * @throws NullPointerException if response is null
+	 */
+	@CheckForNull
+	public static URI getRedirectURI(HttpResponse response) {
+		final StatusLine statusLine = response.getStatusLine();
+		if (statusLine == null || statusLine.getStatusCode() != 302) {
+			return null;
+		}
+		Header location = response.getFirstHeader("Location");
+		if (location == null) return null;
+		String locationValue = location.getValue();
+		if (StringUtils.isBlank(locationValue)) return null;
+		try {
+			/*
+            // debug start
+            URI uri = new URI(locationValue);
+            if (log.isDebugEnabled()) {
+                String query = uri.getQuery();
+                if (query != null) {
+                    System.out.println("XXX: params");
+                    for(String s : query.split("&")) {
+                        int ind = s.indexOf('=');
+                        if (ind == -1) continue;
+                        String name = s.substring(0,ind);
+                        String value = s.substring(ind+1);
+                        System.out.printf("\t%s=%s%n", name, value);
+                        if ("request".equals(name)) {
+                            // request parameter is base64-encoded JWT + binary token
+                            // e.g. {"typ":"JWT","alg":"HS256"}{"id_token":{"claims"...
+                            byte[] bytes = Base64.decodeBase64(value);
+                            if (bytes != null) {
+                                try {
+                                    value = new String(bytes, "UTF-8");
+                                } catch (UnsupportedEncodingException e) {
+                                    value = new String(bytes); // use default encoding
+                                }
+                                System.out.println("\t\t" + value);
+                            }
+                        }
+                        //if ("nonce".equals(name)) {
+                            //context.setProperty(userEmail.replaceAll("[^a-zA-Z0-9]+","_") + ".nonce", value);
+                        //}
+                    }
+                    // log.debug("XXX: params\n\t" + query.replace("&", "\n\t"));
+                }
+            }
+            return uri;
+            // debug end
+            */
+			return new URI(locationValue);
+		} catch (URISyntaxException e) {
+			log.error("", e);
+			return null;
+		}
 	}
 
 }
