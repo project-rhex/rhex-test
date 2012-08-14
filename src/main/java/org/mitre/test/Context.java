@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Application context handles configuration and general house keeping.
+ * Abstracts the tests from most server implementation details including
+ * authentication and security handling.
+ *
  * @author Jason Mathews, MITRE Corp.
  * Date: 2/20/12 10:55 AM
  */
@@ -176,7 +180,18 @@ public class Context {
 		return config != null ? config.getString(key) : null;
 	}
 
-    public void setProperty(String key, String value) {
+	/**
+	 * Get user property which is stored as username . property name in configuration.
+	 * @param user  The username alias, never null
+	 * @param property The configuration key, never null
+	 * @return The associated string value if key is found otherwise null
+	 */
+	@CheckForNull
+	public String getUserProperty(String user, String property) {
+		return getString(user + "." + property);
+	}
+
+	public void setProperty(String key, String value) {
         if (config != null) {
             System.out.printf("XXX: set prop %s %s%n", key, value);//debug
             config.setProperty(key, value);
@@ -300,15 +315,15 @@ public class Context {
      * @return true if successful sets user context, false otherwise
      */
     public boolean setUser(String userId) {
-        if (httpRequestChecker != null) {
+        if (userId != null && httpRequestChecker != null) {
             UserInfo userInfo = userMap.get(userId);
             if(userInfo == null) {
-                String userEmail = config.getString(userId + ".email");
+                String userEmail = getUserProperty(userId, "email");
                 if (userEmail == null) {
                     log.warn("user " + userId + " email not found in config");
                     return false;
                 }
-                String password = config.getString(userId + ".password");
+                String password = getUserProperty(userId, "password");
                 if (password == null) {
                     log.warn("user " + userId + " password not found in config");
                     return false;
@@ -347,7 +362,7 @@ public class Context {
         this.reporter = reporter;
     }
 
-    private static class UserInfo {
+	private static class UserInfo {
         private final String email;
         private final String password;
         public UserInfo(String email, String password) {
