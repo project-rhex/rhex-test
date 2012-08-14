@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test for document GET.
+ * Test for document GET. This test assumes the patient document is an well-formed XML document.
  *
  * <pre>
  * 6.5 baseURL/sectionpath/documentname
@@ -120,7 +120,7 @@ public class DocumentGet extends BaseXmlTest {
             throw new TestException("Document content length=" + len + ", expecting len > 0");
         }
         final String contentType = ClientHelper.getContentType(entity);
-        // expect content-type = application/atom+xml OR text/xml OR application/xml
+        // expect content-type = text/xml OR application/xml OR application/atom+xml
         if (!ClientHelper.isXmlContentType(contentType)) {
             dumpResponse(req, response, true);
             throw new TestException("expected XML content in response body: type=" + contentType);

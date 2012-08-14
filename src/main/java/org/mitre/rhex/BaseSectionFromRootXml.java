@@ -201,7 +201,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 		final String contentType = ClientHelper.getContentType(entity);
 		// content-type = text/xml OR application/xml
 		if (!MIME_APPLICATION_ATOM_XML.equals(contentType)) {
-			addWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
+			addLogWarning("Expected " + MIME_APPLICATION_ATOM_XML + " content-type for section but was: " + contentType);
 		}
 		long len = entity.getContentLength();
 		// minimum length expected is 43 bytes or a negative number if unknown
@@ -267,4 +267,5 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 	public List<String> getSectionList() {
 		return sectionList;
 	}
+
 }

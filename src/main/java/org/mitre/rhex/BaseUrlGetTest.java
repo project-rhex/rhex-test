@@ -76,7 +76,7 @@ public class BaseUrlGetTest extends BaseXmlTest {
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + req.getURI());
 				for(Header header : req.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
+					System.out.println("  " + header.getName() + ": " + header.getValue());
 				}
 			}
 			response = context.executeRequest(client, req);
