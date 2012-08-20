@@ -19,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Test for section document creation
@@ -116,17 +115,18 @@ public class DocumentCreate extends BaseXmlTest {
 		 */
 
         final Context context = Loader.getInstance().getContext();
-        sectionPath = context.getString("document.section");
+        sectionPath = context.getString("updateDocument.section");
 		if (StringUtils.isBlank(sectionPath)) {
 			// check pre-conditions and setup
-			log.error("Failed to specify valid document/section property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
+			log.error("Failed to specify valid updateDocument/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid updateDocument/section property in configuration");
 			return;
 		}
 
         if (!sections.contains(sectionPath)) {
             // test pre-conditions
             log.error("Failed to find section " + sectionPath + " in test results");
+			log.debug("sections: {}", sections);
             setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
             return;
         }
@@ -136,7 +136,7 @@ public class DocumentCreate extends BaseXmlTest {
 	}
 
 	protected void sendRequest(Context context) throws TestException {
-		File fileToUpload = context.getPropertyAsFile("document.file");
+		File fileToUpload = context.getPropertyAsFile("updateDocument.file");
 		if (fileToUpload == null) {
 			// check pre-conditions and setup
 			log.error("Failed to specify valid document file property in configuration");

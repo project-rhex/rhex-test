@@ -67,16 +67,16 @@ public class SectionPut extends BaseTest {
 		}
 		List<String> sections = ((BaseSectionFromRootXml)baseTest).getSectionList();
 		if (sections.isEmpty()) {
-			log.error("Failed to retrieve prerequisite test");
+			log.error("Failed to retrieve prerequisite test results");
 			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results");
 			return;
 		}
 		final Context context = Loader.getInstance().getContext();
-		String section = context.getString("document.section"); // e.g. "vital_signs"
+		String section = context.getString("updateDocument.section"); // e.g. "vital_signs"
 		if (StringUtils.isBlank(section)) {
 			// check pre-conditions and setup
-			log.error("Failed to specify valid document/section property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
+			log.error("Failed to specify valid updateDocument/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid updateDocument/section property in configuration");
 			return;
 		}
 		if (!sections.contains(section)) {

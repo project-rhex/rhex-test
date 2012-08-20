@@ -43,10 +43,10 @@ import java.util.List;
  * the correct media type or the XML schema identified by the content type
  * of this section, the server MUST return a status code of 400.
  *
- * If the request is successful, the new section document MUST show up in the
+ * If the request is successful, the [updated] section document MUST show up in the
  * document feed for the section. The server returns a 200.
  *
- * Status Code: 200, 400, 404
+ * Status Code: 200, 400, [404]
  * </pre>
  *
  * @author Jason Mathews, MITRE Corp.
@@ -93,12 +93,12 @@ public class DocumentPut extends BaseTest {
 			return;
 		}
 		final Context context = Loader.getInstance().getContext();
-		String documentSection = context.getString("document.section");
+		String documentSection = context.getString("updateDocument.section");
         if (StringUtils.isBlank(documentSection)) {
 			// check pre-conditions and setup
             // e.g. documentSection=vital_signs
-			log.error("Failed to specify valid document/section property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/section property in configuration");
+			log.error("Failed to specify valid updateDocument/section property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid updateDocument/section property in configuration");
 			return;
 		}
 		if (!sections.contains(documentSection)) {
@@ -106,6 +106,14 @@ public class DocumentPut extends BaseTest {
 			setStatus(StatusEnumType.SKIPPED, "Failed to find section in test results");
 			return;
 		}
+		File updateDocument = context.getPropertyAsFile("updateDocument.file");
+		if (updateDocument == null) {
+			log.error("Failed to specify valid updateDocument/file property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid updateDocument/file property in configuration");
+			return;
+		}
+		log.debug("use file input: {}", updateDocument);
+
 		HttpClient client = null;
 		try {
 			// create a documentname URL for an existing section that does not already exist
@@ -116,7 +124,6 @@ public class DocumentPut extends BaseTest {
 				System.out.println("documentPath=" + documentPath);
 			}
 			client = context.getHttpClient();
-			HttpPut request = new HttpPut(baseUrl);
 
 			// note: section 6.5.2 does not list the PUT form parameter for the request body
 			// which is assumed to be of type “application/xwww-	form-urlencoded as defined
@@ -127,28 +134,23 @@ public class DocumentPut extends BaseTest {
 			// formParams.add(new BasicNameValuePair("document", ""));
 			// request.setEntity(new UrlEncodedFormEntity(formParams));
 
-			File updateDocument = context.getPropertyAsFile("document.file");
-			if (updateDocument != null) {
-				log.debug("use file input: {}", updateDocument);
-				request.setEntity(new FileEntity(updateDocument, ContentType.APPLICATION_XML));
-			} else {
-				StringEntity entity = new StringEntity("plain text", ContentType.TEXT_PLAIN);
-                // this should generate a 400 error
-				request.setEntity(entity);
-			}
+			HttpPut request = new HttpPut(baseUrl);
+			request.setEntity(new FileEntity(updateDocument, ContentType.APPLICATION_XML));
 			HttpResponse response = context.executeRequest(client, request);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
+			if (code != 404 || log.isDebugEnabled()) {
+				dumpResponse(request, response, true);
+				/*
 				System.out.println("PUT Response status=" + code);
 				for (Header header : response.getAllHeaders()) {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
 				}
+				*/
 			}
-			if (code != 404 && code != 400) {
-				setStatus(StatusEnumType.FAILED, "Expected 400 or 404 HTTP status code but was: " + code);
+			if (code != 404) {
+				setStatus(StatusEnumType.FAILED, "Expected 404 HTTP status code but was: " + code);
 				return;
 			}
-
 			setStatus(StatusEnumType.SUCCESS);
 		} catch (URISyntaxException e) {
 			log.error("", e);
