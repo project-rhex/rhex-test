@@ -50,8 +50,13 @@ public final class ClientHelper {
         for (Header header : response.getAllHeaders()) {
             String name = header.getName();
             // suppress set-cookie header in output unless debug enabled
-            if (log.isDebugEnabled() || !"Set-Cookie".equals(name))
-                System.out.println("\t" + name + ": " + header.getValue());
+            if (log.isDebugEnabled() || !"Set-Cookie".equals(name)) {
+				String value = header.getValue();
+				// don't dump Authorization header which has base64-encoded passwords unless at the trace logging level
+				if ("Authorization".equals(name) && !log.isTraceEnabled())
+					value = "...";
+				System.out.println("\t" + name + ": " + value);
+			}
         }
         if (dumpEntity) {
             HttpEntity entity = response.getEntity();
