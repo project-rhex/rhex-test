@@ -1,16 +1,13 @@
 package org.mitre.rhex;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -19,7 +16,6 @@ import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -65,6 +61,10 @@ public class DocumentUpdate extends BaseXmlTest {
 
 	private String targetText;
 
+	public DocumentUpdate() {
+		setProperty(DocumentPutPreTest.class, PROP_KEEP_DOCUMENT_BOOL, true);
+	}
+
 	@NonNull
 	public String getId() {
 		return "6.5.2.1";
@@ -82,37 +82,45 @@ public class DocumentUpdate extends BaseXmlTest {
 
 	@NonNull
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
-		return Collections.emptyList();
+		return Collections.<Class<? extends TestUnit>> singletonList(DocumentPutPreTest.class); // 6.5.2.0
 	}
 
 	public void execute() throws TestException {
-		final Context context = Loader.getInstance().getContext();
-		final URI baseURL = context.getPropertyAsURI("updateDocumentUrl");
+		TestUnit dependTest = getDependency(DocumentPutPreTest.class);
+		if (dependTest == null) {
+			// assertion failed: this should never be null
+			log.error("Failed to retrieve prerequisite test");
+			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test");
+			return;
+		}
+		DocumentPutPreTest baseTest = (DocumentPutPreTest) dependTest;
+		final URI baseURL = baseTest.getBaseURL();
 		if (baseURL == null) {
 			// check pre-conditions and setup
-			log.error("Failed to specify valid updateDocumentUrl property in configuration");
-			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid updateDocumentUrl property in configuration");
+			log.error("Failed to retrieve prerequisite test results");
+			setStatus(StatusEnumType.SKIPPED, "Failed to retrieve prerequisite test results: 6.5.2.0");
 			return;
 		}
 		final String xmlContent;
 		try {
-			xmlContent = getContent(context, baseURL);
+			xmlContent = getContent(baseTest);
 			if (xmlContent == null) {
 				setStatus(StatusEnumType.SKIPPED, "Failed to fetch/update test document to perform test");
 				return;
 			}
 			System.out.println("\nUpdated XML content=\n" + xmlContent);
 		} catch (IOException e) {
+			System.out.println("URL=" + baseURL);
 			throw new TestException(e);
 		} catch (JDOMException e) {
+			System.out.println("URL=" + baseURL);
 			throw new TestException(e);
 		}
 
+		final Context context = Loader.getInstance().getContext();
 		HttpClient client = context.getHttpClient();
 		try {
-			HttpPut request = new HttpPut(baseURL);
-			StringEntity entity = new StringEntity(xmlContent, ContentType.APPLICATION_XML);
-			request.setEntity(entity);
+			HttpPut request = createRequest(baseURL, xmlContent);
 			/*
 			HTTP Request:
 			  - >> "PUT /records/1547/vital_signs/4f37e9a12a1002000400008b HTTP/1.1[\r][\n]"
@@ -135,16 +143,9 @@ public class DocumentUpdate extends BaseXmlTest {
 			  - >> "[\r][\n]"
 			 */
 			HttpResponse response = context.executeRequest(client, request);
-            int code = response.getStatusLine().getStatusCode();
-			if (code != 200 || log.isDebugEnabled()) {
-				dumpResponse(request, response);
-			}
-
-			// check return code
-			assertEquals(200, code);
 
 			// next verify change was accepted
-			if (validateContent(context, baseURL))
+			if (validateContent(context, request, response, baseTest, baseURL))
 				setStatus(StatusEnumType.SUCCESS);
 			else
 				setStatus(StatusEnumType.FAILED);
@@ -161,29 +162,59 @@ public class DocumentUpdate extends BaseXmlTest {
 		}
 	}
 
-	private String getContent(Context context, URI baseURL) throws IOException, JDOMException {
-		Document doc = getXmlDocument(context, baseURL);
-		if (doc == null) return null;
+	protected HttpPut createRequest(URI baseURL, String xmlContent) {
+		HttpPut request = new HttpPut(baseURL);
+		StringEntity entity = new StringEntity(xmlContent, ContentType.APPLICATION_XML);
+		request.setEntity(entity);
+		return request;
+	}
+
+	protected String getContent(DocumentPutPreTest baseTest) throws IOException, JDOMException {
+		/*
+			expecting something like:
+
+			<vitalSign xmlns="urn:hl7-org:greencda:c32">
+				<id>4f37e9a12a1002000400008b</id>
+				<code code="60621009" codeSystem="2.16.840.1.113883.6.96" ><originalText>BMI</originalText></code>
+				  <status code="completed"/>
+				<effectiveTime>2010-06-27 04:00:00 +0000</effectiveTime>
+				<value amount="17.358024691358025" unit="" />
+			</vitalSign>
+		 */
+		Document doc = baseTest.getDocument();
+		if (doc == null) {
+			log.error("Failed to retrieve document from prerequisite test");
+			// setStatus(StatusEnumType.SKIPPED, "Failed to retrieve document from prerequisite test");
+			return null;
+		}
 		final Element rootElement = doc.getRootElement();
 		final Element effectiveTime = rootElement.getChild("effectiveTime", rootElement.getNamespace());
 		// System.out.println("target effectiveTime=" + effectiveTime);
 		if (effectiveTime != null) {
 			final Element start = effectiveTime.getChild("start", rootElement.getNamespace());
+			Attribute value = null;
 			/*
-			look for effectiveTime field in either form in input document:
+			Look for effectiveTime field in one of 3 forms in input document:
 
-			<effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
+			1. <effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
 
-			<effectiveTime>
+			2. <effectiveTime>
+		    	<start value="2005-02-09 03:00:00 -0500" />
+  			   </effectiveTime>
+
+			3. <effectiveTime>
      			  <start>2009-02-09 02:00:00 -0500</start>
        			  <end></end>
-			</effectiveTime>
+			   </effectiveTime>
+
 			 */
 			String text;
 			if (start != null) {
-				text = start.getTextTrim();
+				value = start.getAttribute("value");
+				if (value != null) text = value.getValue(); // #2
+				else text = start.getTextTrim(); // #3
 			} else {
-				text = effectiveTime.getTextTrim();
+				text = effectiveTime.getTextTrim(); // #1
 			}
 			System.out.println("target effectiveTime=" + text);
 			if (StringUtils.isBlank(text)) {
@@ -211,9 +242,10 @@ public class DocumentUpdate extends BaseXmlTest {
 			}
 			// increment the year field
 			//targetText = (Integer.parseInt(m.group(1)) + 1) + text.substring(4);
-			if (start != null)
-				start.setText(targetText);
-			else
+			if (start != null) {
+				if (value != null) value.setValue(targetText);
+				else start.setText(targetText);
+			} else
 				effectiveTime.setText(targetText);
 			// System.out.println("targetText=" + effectiveTime.getText());
 			XMLOutputter xo = new XMLOutputter();
@@ -223,9 +255,16 @@ public class DocumentUpdate extends BaseXmlTest {
 		return null;
 	}
 
-	private boolean validateContent(Context context, URI baseURL)
+	protected boolean validateContent(Context context, HttpPut request, HttpResponse response, DocumentPutPreTest baseTest, URI baseURL)
             throws JDOMException, IOException, TestException
     {
+		int code = response.getStatusLine().getStatusCode();
+		if (code != 200 || log.isDebugEnabled()) {
+			dumpResponse(request, response);
+		}
+		// check return code
+		assertEquals(200, code);
+
 		Document doc = getXmlDocument(context, baseURL);
 		if (doc == null) return false;
 		final Element rootElement = doc.getRootElement();
@@ -236,74 +275,17 @@ public class DocumentUpdate extends BaseXmlTest {
             return false;
         }
         final Element start = effectiveTime.getChild("start", rootElement.getNamespace());
-        String elementValue = start != null ? start.getText()
-                : effectiveTime.getText();
+		String elementValue;
+		if (start != null) {
+			Attribute value = start.getAttribute("value");
+			if (value != null) elementValue = value.getValue();
+			else elementValue = start.getText();
+		} else {
+			// <effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
+			elementValue = effectiveTime.getText();
+		}
         assertEquals(targetText, elementValue);
         return true;
-	}
-
-	@CheckForNull
-	private Document getXmlDocument(Context context, URI baseURL)
-			throws IOException, JDOMException
-	{
-		HttpClient client = context.getHttpClient();
-		try {
-			HttpGet req = new HttpGet(baseURL);
-            // Accept definition -> http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-			req.setHeader("Accept", MIME_APPLICATION_XML);
-			// req.setHeader("If-Modified-Since", "Tue, 28 Feb 2012 14:33:15 GMT");
-			if (log.isDebugEnabled()) {
-				System.out.println("\nURL: " + req.getURI());
-				for(Header header : req.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-			}
-			HttpResponse response = context.executeRequest(client, req);
-			int code = response.getStatusLine().getStatusCode();
-			if (code != 200 || log.isDebugEnabled()) {
-                dumpResponse(req, response);
-			}
-			if (code != 200) {
-				addWarning("Unexpected HTTP response: " + code);
-				return null;
-			}
-			final HttpEntity entity = response.getEntity();
-			if (entity == null) {
-				addWarning("Expect XML in body of response");
-				return null;
-			}
-			final String contentType = ClientHelper.getContentType(entity, false);
-			// content-type = text/xml OR application/xml
-			if (!MIME_TEXT_XML.equals(contentType) && !MIME_APPLICATION_XML.equals(contentType)) {
-				addWarning("Expected supported XML content-type but was: " + contentType);
-				return null;
-			}
-			long len = entity.getContentLength();
-			// minimum length expected is 66 bytes or a negative number if unknown
-			if (len <= 0) {
-				addWarning("Expecting valid XML document; returned length was " + len);
-				return null;
-			}
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			entity.writeTo(bos);
-			if (log.isDebugEnabled()) {
-				System.out.println("Content=\n" + bos.toString("UTF-8"));
-			}
-			/*
-			expecting something like:
-
-			<vitalSign xmlns="urn:hl7-org:greencda:c32">
-				<id>4f37e9a12a1002000400008b</id>
-				<code code="60621009" codeSystem="2.16.840.1.113883.6.96" ><originalText>BMI</originalText></code>
-				  <status code="completed"/>
-				<effectiveTime>2010-06-27 04:00:00 +0000</effectiveTime>
-				<value amount="17.358024691358025" unit="" />
-			</vitalSign>
-			 */
-			return getDefaultDocument(context, bos);
-		} finally {
-			client.getConnectionManager().shutdown();
-		}
 	}
 
 }
