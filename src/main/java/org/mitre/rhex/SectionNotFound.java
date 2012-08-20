@@ -93,11 +93,8 @@ public class SectionNotFound extends BaseXmlTest {
 			req.setHeader("Accept", "application/atom+xml, application/xml");
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+			if (code != 404 || log.isDebugEnabled()) {
+				dumpResponse(req, response);
 			}
 			assertEquals(404, code);
 			// setResponse(response);
