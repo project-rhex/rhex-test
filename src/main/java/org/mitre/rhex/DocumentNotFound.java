@@ -46,7 +46,7 @@ public class DocumentNotFound extends BaseXmlTest {
 
 	@NonNull
 	public String getId() {
-		return "6.5.1.2";
+		return "6.5.1.3";
 	}
 
 	@Override
