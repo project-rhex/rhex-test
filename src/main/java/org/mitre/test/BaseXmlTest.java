@@ -1,5 +1,6 @@
 package org.mitre.test;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -170,6 +171,70 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 			throws IOException, JDOMException
 	{
 		return getValidatingParser(context, bos, "<feed", NAMESPACE_W3_ATOM_2005, "schemas/atom.xsd");
+	}
+
+	@CheckForNull
+	public Document getXmlDocument(Context context, URI baseURL)
+			throws IOException, JDOMException
+	{
+		HttpClient client = context.getHttpClient();
+		try {
+			HttpGet req = new HttpGet(baseURL);
+			// Accept definition -> http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+			req.setHeader("Accept", MIME_APPLICATION_XML);
+			// req.setHeader("If-Modified-Since", "Tue, 28 Feb 2012 14:33:15 GMT");
+			if (log.isDebugEnabled()) {
+				System.out.println("\nURL: " + req.getURI());
+				for(Header header : req.getAllHeaders()) {
+					System.out.println("\t" + header.getName() + ": " + header.getValue());
+				}
+			}
+			HttpResponse response = context.executeRequest(client, req);
+			int code = response.getStatusLine().getStatusCode();
+			if (code != 200 || log.isDebugEnabled()) {
+				dumpResponse(req, response);
+			}
+			if (code != 200) {
+				addLogWarning("Unexpected HTTP response: " + code);
+				return null;
+			}
+			final HttpEntity entity = response.getEntity();
+			if (entity == null) {
+				addLogWarning("Expect XML in body of response");
+				return null;
+			}
+			final String contentType = ClientHelper.getContentType(entity, false);
+			// content-type = text/xml OR application/xml
+			if (!MIME_TEXT_XML.equals(contentType) && !MIME_APPLICATION_XML.equals(contentType)) {
+				addLogWarning("Expected supported XML content-type but was: " + contentType);
+				return null;
+			}
+			long len = entity.getContentLength();
+			// minimum length expected is 66 bytes or a negative number if unknown
+			if (len <= 0) {
+				addLogWarning("Expecting valid XML document; returned length was " + len);
+				return null;
+			}
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			entity.writeTo(bos);
+			if (log.isDebugEnabled()) {
+				System.out.println("Content=\n" + bos.toString("UTF-8"));
+			}
+			/*
+			typical document:
+
+			<vitalSign xmlns="urn:hl7-org:greencda:c32">
+				<id>4f37e9a12a1002000400008b</id>
+				<code code="60621009" codeSystem="2.16.840.1.113883.6.96" ><originalText>BMI</originalText></code>
+				  <status code="completed"/>
+				<effectiveTime>2010-06-27 04:00:00 +0000</effectiveTime>
+				<value amount="17.358024691358025" unit="" />
+			</vitalSign>
+			 */
+			return getDefaultDocument(context, bos);
+		} finally {
+			client.getConnectionManager().shutdown();
+		}
 	}
 
 	protected Document getSectionAtomDocument(Context context, String sectionPath) {
