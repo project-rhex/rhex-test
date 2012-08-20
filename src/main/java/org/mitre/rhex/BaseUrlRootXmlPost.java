@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * 6.3 baseURL/root.xml
  *
- * 6.3.2 POST, PUT, DELETE operations MUST NOT be implemented.
+ * 6.3.2 <B>POST</B>, PUT, DELETE operations MUST NOT be implemented.
  *
  * Status Code: 405
  *
@@ -134,11 +134,8 @@ public class BaseUrlRootXmlPost extends BaseXmlTest {
 			HttpPost httppost = new HttpPost(baseURL);
 			HttpResponse response = context.executeRequest(client, httppost);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("POST Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+			if (code != 405 || log.isDebugEnabled()) {
+				dumpResponse(httppost, response);
 			}
 			assertEquals(405, code);
 		} catch (IOException e) {
