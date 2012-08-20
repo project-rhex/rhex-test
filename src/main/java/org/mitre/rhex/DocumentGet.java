@@ -1,6 +1,7 @@
 package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -27,9 +28,9 @@ import java.util.List;
  *
  * 6.5.1 GET
  *
- * This operation returns a representation of the document that is identified by documentname within the
- * section identified by sectionpath. The documentname is typically assigned by the underlying system
- * and is not guaranteed to be identical across two different systems.
+ * This operation returns a representation of the document that is identified by documentname
+ * within the section identified by sectionpath. The documentname is typically assigned by the
+ * underlying system and is not guaranteed to be identical across two different systems.
  *
  * Status Code: 200
  * </pre>
@@ -47,7 +48,7 @@ public class DocumentGet extends BaseXmlTest {
 
     @NonNull
     public String getId() {
-        return "6.5.1.0";
+        return "6.5.1.1";
     }
 
     @NonNull
@@ -68,13 +69,20 @@ public class DocumentGet extends BaseXmlTest {
     @Override
     public void execute() throws TestException {
         final Context context = Loader.getInstance().getContext();
-        documentURL = context.getPropertyAsURI("documentUrl");
+        documentURL = context.getPropertyAsURI("document.url");
         if (documentURL == null) {
             // check pre-conditions and setup
-            log.error("Failed to specify valid documentUrl property in configuration");
-            setStatus(StatusEnumType.SKIPPED, "Failed to specify valid documentUrl property in configuration");
+            log.error("Failed to specify valid document/url property in configuration");
+            setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/url property in configuration");
             return;
         }
+		String content = context.getString("document.content");
+		if (StringUtils.isBlank(content)) {
+			// check pre-conditions and setup
+			log.error("Failed to specify valid document/content property in configuration");
+			setStatus(StatusEnumType.SKIPPED, "Failed to specify valid document/content property in configuration");
+			return;
+		}
         HttpClient client = context.getHttpClient();
         HttpGet req = new HttpGet(documentURL);
         req.setHeader("Accept", MIME_APPLICATION_XML);
@@ -87,7 +95,7 @@ public class DocumentGet extends BaseXmlTest {
 		HttpResponse response = null;
         try {
             response = context.executeRequest(client, req);
-            validateContent(context, req, response);
+            validateContent(context, req, response, content);
             setResponse(response);
             setStatus(StatusEnumType.SUCCESS);
         } catch (IOException e) {
@@ -98,7 +106,7 @@ public class DocumentGet extends BaseXmlTest {
         }
     }
 
-    private void validateContent(Context context, HttpGet req, HttpResponse response)
+    private void validateContent(Context context, HttpGet req, HttpResponse response, String content)
 			throws IOException, TestException
 	{
         int code = response.getStatusLine().getStatusCode();
@@ -128,9 +136,12 @@ public class DocumentGet extends BaseXmlTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         entity.writeTo(bos);
         try {
-			if (log.isDebugEnabled()) {
-				System.out.println("Response body:\n"  + bos.toString());
+			String bodyText = bos.toString("UTF-8");
+			if (bodyText == null || !bodyText.contains(content)) {
+				log.error("Content:\n\t{}", bodyText);
+				throw new TestException("Failed to match expected content in response");
 			}
+			log.debug("XXX: expected content found in response:\n\t{}", bodyText); // success so far
             Document doc = getDefaultDocument(context, bos);
             if (keepDocument) setDocument(doc);
         } catch (JDOMException e) {
