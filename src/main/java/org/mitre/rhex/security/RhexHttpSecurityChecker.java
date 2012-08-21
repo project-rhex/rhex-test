@@ -51,15 +51,13 @@ public class RhexHttpSecurityChecker implements HttpRequestChecker {
 
         final URI uri = context.getPropertyAsURI("loginURL");
         if (uri == null) {
-            log.error("loginURL property not defined");
-            return;
+			throw new IllegalArgumentException("loginURL property not defined");
         }
 
         String loginEmail = context.getString("loginEmail");
         String loginPassword = context.getString("loginPassword");
         if (StringUtils.isBlank(loginEmail) || StringUtils.isBlank(loginPassword)) {
-            log.error("loginEmail and loginPassword properties are empty or missing");
-            return;
+			throw new IllegalArgumentException("loginEmail and loginPassword properties are empty or missing");
         }
 
 		log.debug("POST auth URL: {}", uri);
