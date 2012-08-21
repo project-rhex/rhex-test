@@ -18,11 +18,12 @@ import java.util.*;
  */
 public abstract class BaseTest implements TestUnit {
 
-	private final Logger log;
+	protected final Logger log;
 
 	private StatusEnumType status;
 	private String description;
-	private Set<String> warnings;
+	private final Set<String> warnings = new LinkedHashSet<String>();
+
 	private HttpResponse response;
 	private boolean keepResponse;
 
@@ -119,8 +120,13 @@ public abstract class BaseTest implements TestUnit {
 		return msg != null && getWarnings().add(msg);
 	}
 
+	/**
+	 * Add warning message to the test results and log
+	 * if message has not already been logged in this test.
+	 * @param msg Warning message, ignored if null
+	 */
 	public void addLogWarning(String msg) {
-		if (addWarning(msg) && log.isDebugEnabled()) log.warn(msg);
+		if (addWarning(msg)) log.warn(msg);
 	}
 
 	/**
@@ -130,7 +136,6 @@ public abstract class BaseTest implements TestUnit {
 	 */
 	@NonNull
 	public Set<String> getWarnings() {
-		if (warnings == null) warnings = new LinkedHashSet<String>();
 		return warnings;
 	}
 
