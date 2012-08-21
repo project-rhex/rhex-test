@@ -47,8 +47,6 @@ import java.net.URI;
  */
 public class DocumentPutBadContent extends DocumentUpdate {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentPutBadContent.class);
-
 	@NonNull
 	public String getId() {
 		return "6.5.2.5";

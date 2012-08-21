@@ -29,8 +29,6 @@ import java.text.SimpleDateFormat;
  */
 public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 
-	private final Logger log;
-
 	private static final String ISO_DATE_FMT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	private SimpleDateFormat dateFormatter;
 
@@ -44,10 +42,6 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 	// private int xmlWarnings;
 	protected int xmlErrors;
 	protected boolean fatalXmlError;
-
-	public BaseXmlTest() {
-		log = LoggerFactory.getLogger(getClass());
-	}
 
 	public Document getDocument() {
 		return document;

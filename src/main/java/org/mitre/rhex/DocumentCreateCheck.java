@@ -54,8 +54,6 @@ import java.util.List;
  */
 public class DocumentCreateCheck extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentCreateCheck.class);
-
 	@NonNull
 	@Override
 	public String getId() {

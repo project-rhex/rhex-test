@@ -32,8 +32,6 @@ import java.util.List;
  */
 public class BaseUrlGetTest extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlGetTest.class);
-
 	@NonNull
 	public String getId() {
 		return "6.2.1.4";

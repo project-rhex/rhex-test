@@ -27,8 +27,6 @@ import java.util.List;
  */
 public class BaseUrlRootXmlDeleteTest extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlDeleteTest.class);
-
 	@NonNull
 	public String getId() {
 		return "6.3.2.3";

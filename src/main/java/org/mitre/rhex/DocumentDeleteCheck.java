@@ -39,8 +39,6 @@ import java.util.List;
  */
 public class DocumentDeleteCheck extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentDeleteCheck.class);
-
 	@NonNull
 	@Override
 	public String getId() {

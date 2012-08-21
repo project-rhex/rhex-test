@@ -54,8 +54,6 @@ import java.util.List;
  */
 public class DocumentPut extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentPut.class);
-
 	@NonNull
 	public String getId() {
 		return "6.5.2.3";

@@ -43,8 +43,6 @@ import java.util.*;
  */
 public class BaseSectionFromRootXml extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseSectionFromRootXml.class);
-
 	private final List<String> sectionList = new ArrayList<String>();
 
 	/**

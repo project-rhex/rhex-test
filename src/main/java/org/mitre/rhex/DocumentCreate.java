@@ -54,8 +54,6 @@ import java.util.List;
  */
 public class DocumentCreate extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentCreate.class);
-
 	protected String sectionPath;
 	private URI documentURL;
 

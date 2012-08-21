@@ -33,8 +33,6 @@ import java.util.*;
  */
 public class BaseUrlRootXmlNotFound extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlNotFound.class);
-
 	@NonNull
 	public String getId() {
 		return "6.3.1.2";

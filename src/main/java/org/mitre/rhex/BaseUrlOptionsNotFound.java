@@ -34,8 +34,6 @@ import java.util.List;
  */
 public class BaseUrlOptionsNotFound extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionsNotFound.class);
-
 	@NonNull
 	public String getId() {
 		return "6.2.5.7";

@@ -50,8 +50,6 @@ import java.util.List;
  */
 public class CreateDuplicateSection extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(CreateDuplicateSection.class);
-
 	private String sectionPath;
 	private String extensionId;
 

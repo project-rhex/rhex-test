@@ -57,8 +57,6 @@ import java.util.regex.Pattern;
  */
 public class DocumentUpdate extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentUpdate.class);
-
 	private String targetText;
 
 	public DocumentUpdate() {

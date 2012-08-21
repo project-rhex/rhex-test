@@ -62,8 +62,6 @@ import java.util.regex.Pattern;
  */
 public class DocumentPutPreTest extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentPutPreTest.class);
-
 	private URI baseURL;
 
 	@NonNull

@@ -40,8 +40,6 @@ import java.util.List;
  */
 public class SectionNotFound extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(SectionNotFound.class);
-
 	@NonNull
 	public String getId() {
 		return "6.4.1.2";

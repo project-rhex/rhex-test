@@ -17,8 +17,6 @@ import java.util.List;
  */
 public class BaseUrlOptionsExtHeader extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionsExtHeader.class);
-
 	public BaseUrlOptionsExtHeader() {
 		// forces BaseUrlOptions test to keep its HttpResponse object after it executes
 		setProperty(BaseUrlOptions.class, PROP_KEEP_RESPONSE_BOOL, Boolean.TRUE);

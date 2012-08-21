@@ -37,8 +37,6 @@ import java.util.*;
  */
 public class RootXmlAtomCheck extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(RootXmlAtomCheck.class);
-
 	public RootXmlAtomCheck() {
 		// forces BaseUrlRootXml + BaseUrlGetTest tests to keep its Document object after they execute
 		setProperty(BaseUrlRootXml.class, BaseUrlRootXml.PROP_KEEP_DOCUMENT_BOOL, Boolean.TRUE);

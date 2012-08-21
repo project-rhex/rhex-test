@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  *
  * If no document of name documentname exists, the implementation MUST return a HTTP status code 404.
  *
- * Status Codes: 200, 404
+ * Status Codes: <B>200</B>, 404
  * </pre>
  *
  * @author Jason Mathews, MITRE Corp.
@@ -46,10 +46,8 @@ import java.util.regex.Pattern;
  */
 public class DocumentTest extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentTest.class);
-
-	private static final boolean debugEnabled = log.isDebugEnabled();
-    private static final boolean traceEnabled = log.isTraceEnabled();
+	private final boolean debugEnabled = log.isDebugEnabled();
+    private final boolean traceEnabled = log.isTraceEnabled();
 
 	// regexp for mime-type (rfc2046); e.g. application/rss+xml, audio/L2, application/x-pkcs7-signature, etc.
 	private static final Pattern mimePattern = Pattern.compile("[a-z]+/\\S+");

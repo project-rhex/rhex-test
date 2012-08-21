@@ -33,8 +33,6 @@ import java.util.List;
  */
 public class SectionPut extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(SectionPut.class);
-
 	@NonNull
 	public String getId() {
 		return "6.4.3";

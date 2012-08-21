@@ -50,8 +50,6 @@ import java.net.URISyntaxException;
  */
 public class DocumentBadCreate extends DocumentCreate {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentBadCreate.class);
-
 	@NonNull
 	public String getId() {
 		return "6.4.2.4";

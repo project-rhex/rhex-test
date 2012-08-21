@@ -29,8 +29,6 @@ import java.util.List;
  */
 public class BaseUrlOptionNoBody extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionNoBody.class);
-
 	public BaseUrlOptionNoBody() {
 		// forces source test to keep its Document objects after it executes
 		setProperty(BaseUrlOptions.class, PROP_KEEP_RESPONSE_BOOL, Boolean.TRUE);

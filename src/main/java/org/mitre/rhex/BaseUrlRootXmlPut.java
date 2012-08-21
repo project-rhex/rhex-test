@@ -26,8 +26,6 @@ import java.util.List;
  */
 public class BaseUrlRootXmlPut extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXmlPut.class);
-
 	@NonNull
 	public String getId() {
 		return "6.3.2.2";

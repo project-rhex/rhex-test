@@ -40,8 +40,6 @@ import java.util.List;
  */
 public class DocumentGet extends BaseXmlTest {
 
-    private static final Logger log = LoggerFactory.getLogger(DocumentGet.class);
-
     private URI documentURL;
 
 	private boolean dumped;

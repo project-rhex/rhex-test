@@ -27,8 +27,6 @@ import java.util.List;
  */
 public class BaseUrlNotFoundTest extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlNotFoundTest.class);
-
 	@NonNull
 	public String getId() {
 		return "6.2.1.1";

@@ -17,8 +17,6 @@ import java.util.List;
  */
 public class BaseUrlOptionsHcpHeader extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlOptionsHcpHeader.class);
-
 	public BaseUrlOptionsHcpHeader() {
 		// forces BaseUrlOptions test to keep its HttpResponse object after it executes
 		setProperty(BaseUrlOptions.class, PROP_KEEP_RESPONSE_BOOL, Boolean.TRUE);

@@ -43,8 +43,6 @@ import java.util.List;
  */
 public class DocumentNotFound extends BaseTest {
 
-	protected final Logger log = LoggerFactory.getLogger(getClass());
-
 	@NonNull
 	public String getId() {
 		return "6.5.1.3";

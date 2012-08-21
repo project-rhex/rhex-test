@@ -38,8 +38,6 @@ import java.util.*;
  */
 public class BaseUrlRootXml extends BaseXmlTest {
 
-	private static final Logger log = LoggerFactory.getLogger(BaseUrlRootXml.class);
-
 	/**
 	 * Mapping of extensions to section paths
 	 */
