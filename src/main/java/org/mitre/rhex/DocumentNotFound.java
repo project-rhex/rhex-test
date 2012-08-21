@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +41,9 @@ import java.util.List;
  * @author Jason Mathews, MITRE Corp.
  * Date: 3/5/12 10:45 AM
  */
-public class DocumentNotFound extends BaseXmlTest {
+public class DocumentNotFound extends BaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(DocumentNotFound.class);
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
 	@NonNull
 	public String getId() {
@@ -86,14 +87,16 @@ public class DocumentNotFound extends BaseXmlTest {
 			String section = getTargetSection(sectionList);
 			URI baseURL = context.getBaseURL(section);
 			baseURL = new URI(baseURL.toASCIIString() + "/should_not_exist");
-			HttpGet req = new HttpGet(baseURL);
+			HttpRequestBase req = createRequest(baseURL);
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + req.getURI());
 			}
-			req.setHeader("Accept", MIME_APPLICATION_JSON);
 			HttpResponse response = context.executeRequest(client, req);
-			int code = response.getStatusLine().getStatusCode();
+			/*
+			//int code = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
+				dumpResponse(req, response, true);
+				/*
 				System.out.println("Response status=" + code);
 				for (Header header : response.getAllHeaders()) {
 					System.out.println("\t" + header.getName() + ": " + header.getValue());
@@ -107,7 +110,8 @@ public class DocumentNotFound extends BaseXmlTest {
                     }
 				}
 			}
-			assertEquals(404, code);
+			*/
+			validateResponse(req, response);
 			// setResponse(response);
 			setStatus(StatusEnumType.SUCCESS);
 		} catch (URISyntaxException e) {
@@ -121,7 +125,21 @@ public class DocumentNotFound extends BaseXmlTest {
 		}
 	}
 
-    private static String getTargetSection(List<String> sectionList) {
+	protected void validateResponse(HttpRequestBase req, HttpResponse response) throws TestException {
+		int code = response.getStatusLine().getStatusCode();
+		if (code != 404 || log.isDebugEnabled()) {
+			dumpResponse(req, response, true);
+		}
+		assertEquals(404, code);
+	}
+
+	protected HttpRequestBase createRequest(URI baseURL) {
+		HttpGet req = new HttpGet(baseURL);
+		req.setHeader("Accept", "application/json, application/xml");
+		return req;
+	}
+
+	private static String getTargetSection(List<String> sectionList) {
         if (sectionList.isEmpty()) {
             // should never have an empty list
             return "medications";
@@ -135,7 +153,7 @@ public class DocumentNotFound extends BaseXmlTest {
         String section = "medications";
         for (String aSection : sectionList) {
             section = aSection;
-            // try to get non-c32 section which may have special handling
+            // try to get non-c32 section which may have special handling and not support json media type
             if (!"c32".equals(section)) break; // done
         }
         return section;
