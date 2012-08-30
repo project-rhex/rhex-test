@@ -113,8 +113,8 @@ public abstract class BaseTest implements TestUnit {
 	 * Add warning message to the test results
 	 *
 	 * @param msg Warning message, ignored if null
-	 * @return <tt>true</tt> if this set did not already contain the specified
-	 *         message
+	 * @return <tt>true</tt> if the warning set did not already contain the specified
+	 *         message (i.e. the warning has not been seen for this test)
 	 */
 	public boolean addWarning(String msg) {
 		return msg != null && getWarnings().add(msg);
@@ -124,9 +124,13 @@ public abstract class BaseTest implements TestUnit {
 	 * Add warning message to the test results and log
 	 * if message has not already been logged in this test.
 	 * @param msg Warning message, ignored if null
+	 * @return <tt>true</tt> if this warning set did not already contain the specified
+	 *         message (i.e. the warning has not been seen for this test)
 	 */
-	public void addLogWarning(String msg) {
-		if (addWarning(msg)) log.warn(msg);
+	public boolean addLogWarning(String msg) {
+		boolean ret = addWarning(msg);
+		if (ret) log.warn(msg);
+		return ret;
 	}
 
 	/**
