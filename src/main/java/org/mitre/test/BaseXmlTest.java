@@ -186,6 +186,9 @@ public abstract class BaseXmlTest extends BaseTest implements ErrorHandler {
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 200 || log.isDebugEnabled()) {
+				if (!log.isDebugEnabled()) {
+					System.out.println("\nURL: " + req.getURI());
+				}
 				dumpResponse(req, response);
 			}
 			if (code != 200) {
