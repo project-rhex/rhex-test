@@ -20,11 +20,12 @@ import java.util.List;
 /**
  * 6.2.5 OPTIONS
  *
- * The OPTIONS operation on the baseURL is per [8], section 9.2, intended to return communications options to the clients.
- * Within the context of this specification, OPTIONS is used to indicate which security mechanisms are available for a given
- * baseURL and a list of hData content profiles supported by this implementation. All implementations MUST support
- * OPTIONS on the baseURL of each HDR and return a status code of 200, along with:
- * X-hdata-security, X-hdata-hcp, and X-hdata-extensions HTTP headers. <P>
+ * The OPTIONS operation on the baseURL is per [8], section 9.2, intended to return communications
+ * options to the clients.  Within the context of this specification, OPTIONS is used to indicate
+ * which security mechanisms are available for a given baseURL and a list of hData content profiles
+ * supported by this implementation.  All implementations MUST support OPTIONS on the baseURL of
+ * each HDR and return a status code of 200, along with: X-hdata-security, X-hdata-hcp, and
+ * X-hdata-extensions HTTP headers. <P>
  *
  * The server MAY include additional HTTP headers. The response SHOULD NOT include an HTTP body. The client
  * MUST NOT use the Max-Forward header when requesting the security mechanisms for a given HDR. <P>
@@ -63,7 +64,7 @@ public class BaseUrlOptions extends BaseTest {
 			URI baseURL = context.getBaseURL();
             boolean debug = log.isDebugEnabled();
             if (debug) System.out.println("\nOPTION URL: " + baseURL);
-			HttpOptions req = new HttpOptions(baseURL);
+			HttpOptions req = createRequest(baseURL);
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
             if(code != 200 || debug) {
@@ -82,10 +83,10 @@ public class BaseUrlOptions extends BaseTest {
 					ByteArrayOutputStream bos = new ByteArrayOutputStream();
 					try {
 						entity.writeTo(bos);
-					} catch (IOException e) {
+					} catch (Exception e) {
 						log.warn("", e);
 					}
-					System.out.println("content len=" + len + "\n" + bos);
+					System.out.println("content length=" + len + "\n" + bos);
 					/*
 					<?xml version="1.0" encoding="UTF-8"?>
 					<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
@@ -135,6 +136,10 @@ public class BaseUrlOptions extends BaseTest {
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
+	}
+
+	protected HttpOptions createRequest(URI baseURL) {
+		return new HttpOptions(baseURL);
 	}
 
 }
