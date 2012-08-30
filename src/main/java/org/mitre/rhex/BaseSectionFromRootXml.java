@@ -171,10 +171,7 @@ public class BaseSectionFromRootXml extends BaseXmlTest {
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 200 || log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
+				dumpResponse(req, response, code != 200);
 			}
 			return validateContent(code, path, context, response);
 		} finally {
