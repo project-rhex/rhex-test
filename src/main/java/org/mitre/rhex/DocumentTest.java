@@ -2,18 +2,16 @@ package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.mitre.test.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,7 +21,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Test for documents
+ * Test for documents as discovered via section atom feeds
  *
  * <pre>
  * 6.5 baseURL/sectionpath/documentname
@@ -151,18 +149,21 @@ public class DocumentTest extends BaseXmlTest {
 		} // for each entry
 	}
 
-	private void checkDocument(Context context, String href, String type) throws URISyntaxException, IOException {
+	private void checkDocument(Context context, String href, String type) throws URISyntaxException, IOException, TestException {
 		URI baseURL = new URI(href);
 		String contentType = getValidType(type);
 		if (debugEnabled && type != null && !type.equals(contentType))
 			System.out.println("\tcontent type=" + contentType);
-		if (contentType == null)
-			contentType = "application/atom+xml, application/xml, text/xml, application/json, text/html, */*";
-		else {
+		if (contentType == null) {
+			// log.debug("null content type from type={}", type);
+			contentType = "application/xml, text/xml, application/json, text/html, */*";
+		} else {
+			/*
 			if (! MIME_APPLICATION_JSON.equals(contentType)) {
 				contentType += ", application/json";
             }
-			contentType += ", */*";
+            */
+			// contentType += ", */*"; // responds 406 status code
 		}
 
 		HttpClient client = context.getHttpClient();
@@ -171,29 +172,25 @@ public class DocumentTest extends BaseXmlTest {
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", contentType);
             if (debugEnabled) System.out.println("Accept=" + contentType);
-			validateContent(baseURL, client.execute(req), context);
+			validateContent(baseURL, req, context.executeRequest(client, req), context);
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
 	}
 
-	private void validateContent(URI baseURL, HttpResponse response, Context context) throws IOException {
+	private void validateContent(URI baseURL, HttpGet req, HttpResponse response, Context context) throws IOException, TestException {
 		// TODO: what can we test about these document URLs - does any error in document fail overall conformance for the spec requirement
 		int code = response.getStatusLine().getStatusCode();
 		if (debugEnabled) {
 			System.out.println("Response status=" + code);
 		}
-		if (code != 200) {
-			// setStatus(StatusEnumType.FAILED, "Unexpected HTTP response: " + code);
-			// HTTP Status-Code 406: Not Acceptable.
-			if (traceEnabled) {
-				if (code == 406) System.out.println("Content-Type: " + response.getFirstHeader("Content-Type"));
-				else
-					for (Header header : response.getAllHeaders()) {
-						System.out.println("\t" + header.getName() + ": " + header.getValue());
-					}
+		if (code == 406) {
+			if (addLogWarning("Failed to retrieve content for requested media type")) {
+				dumpResponse(req, response, true);
 			}
-			return;
+		} else if (code != 200) {
+			dumpResponse(req, response, true);
+			throw new TestException("Unexpected HTTP response: " + code);
 		}
 		final HttpEntity entity = response.getEntity();
 		if (entity == null) {
@@ -208,8 +205,12 @@ public class DocumentTest extends BaseXmlTest {
 			return;
 		}
 		final String contentType = ClientHelper.getContentType(entity);
-		// content-type = application/atom+xml OR text/xml OR application/xml
-		if (ClientHelper.isXmlContentType(contentType)) {
+		if (contentType == null) {
+			if (addLogWarning("Failed to determine content type") && debugEnabled) {
+				dumpResponse(req, response, true);
+			}
+		} else if (ClientHelper.isXmlContentType(contentType)) {
+			// content-type = application/atom+xml OR text/xml OR application/xml
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			entity.writeTo(bos);
 			try {
@@ -218,8 +219,15 @@ public class DocumentTest extends BaseXmlTest {
 				addWarning(e.getMessage());
 				log.warn("", e);
 			}
-		}
-        // if not XML do nothing
+		} else if (contentType.equals(MIME_APPLICATION_JSON)) {
+			String bodyText = EntityUtils.toString(entity);
+			if (StringUtils.isBlank(bodyText)) {
+				addLogWarning("Empty json document");
+			}
+			// e.g. {"codes":{"SNOMED-CT":["84114007"],"ICD-9-CM":["428.9"],"ICD-10-CM":["I50.9"]},"...
+			// TODO: validate JSON
+		} // else System.out.println("XXX: other type="+ contentType);
+        // if not XML/JSON then do nothing for now
 	}
 
 	private static String getValidType(String type) {
