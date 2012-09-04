@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -263,16 +264,29 @@ public class HtmlReporter extends AbstractReporter {
 
             final Set<? extends TestUnit> dependencies = test.getDependencies();
             System.out.print("<P>Prerequisites:");
-            if (dependencies.isEmpty()) {
-                System.out.println(" None");
-            } else {
+            if (!dependencies.isEmpty()) {
                 int count = 0;
                 for(TestUnit aTest : dependencies) {
                     if (count++ != 0) System.out.print(',');
                     System.out.printf(" <a href='#%s'>%s</a>", aTest.getId(), aTest.getId());
                 }
                 System.out.println("");
-            }
+            } else {
+				List<Class<? extends TestUnit>> depends = test.getDependencyClasses();
+				if (depends.isEmpty()) {
+					System.out.println(" None");
+				} else {
+					int count = 0;
+					for(Class<? extends TestUnit> aTest : depends) {
+						if (count++ != 0) System.out.print(',');
+						String classname = aTest.getName();
+						int ind = classname.lastIndexOf('.');
+						if (ind > 0) classname = classname.substring(ind + 1); // strip off full package name
+						System.out.printf(" <i>%s</i>", classname);
+					}
+					System.out.println("");
+				}
+			}
 
             String desc = test.getStatusDescription();
             if (StringUtils.isNotBlank(desc)) {
