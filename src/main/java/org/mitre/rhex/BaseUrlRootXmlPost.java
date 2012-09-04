@@ -133,15 +133,14 @@ public class BaseUrlRootXmlPost extends BaseXmlTest {
 			HttpResponse response = context.executeRequest(client, httppost);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 405 || log.isDebugEnabled()) {
-				dumpResponse(httppost, response);
+				if (!log.isDebugEnabled()) System.out.println("URL: " + baseURL);
+				dumpResponse(httppost, response, code == 200);
 			}
 			assertEquals(405, code);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} catch (URISyntaxException e) {
 			throw new TestException(e);
-		//} catch (JDOMException e) {
-			//throw new TestException(e);
 		} finally {
 			// REVIEW: if HttpClient not shared with other tests
 			client.getConnectionManager().shutdown();

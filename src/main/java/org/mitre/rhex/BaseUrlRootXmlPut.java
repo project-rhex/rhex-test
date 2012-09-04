@@ -56,6 +56,7 @@ public class BaseUrlRootXmlPut extends BaseXmlTest {
 			HttpResponse response = context.executeRequest(client, request);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 405 || log.isDebugEnabled()) {
+				if (!log.isDebugEnabled()) System.out.println("URL: " + baseURL);
                 dumpResponse(request, response, code == 200);
 			}
 			assertEquals(405, code);

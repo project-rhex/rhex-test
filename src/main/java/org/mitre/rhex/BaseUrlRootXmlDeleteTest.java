@@ -55,19 +55,14 @@ public class BaseUrlRootXmlDeleteTest extends BaseTest {
 			HttpDelete req = new HttpDelete(baseURL);
 			if (log.isDebugEnabled()) {
 				System.out.println("\nDELETE URL: " + req.getURI());
-				/*
-				for(Header header : req.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-				*/
 			}
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
+			if (code != 405 || log.isDebugEnabled()) {
+				if (!log.isDebugEnabled()) {
+					System.out.println("URL: " + req.getURI());
 				}
+				dumpResponse(req, response, code == 200);
 			}
 			assertEquals(405, code);
 			setStatus(StatusEnumType.SUCCESS);
