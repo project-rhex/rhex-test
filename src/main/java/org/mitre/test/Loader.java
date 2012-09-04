@@ -211,9 +211,14 @@ public final class Loader {
 	}
 
 	public void load(TestUnit test) throws IllegalArgumentException {
-		if (!idSet.add(test.getId())) {
+		String id = test.getId();
+		if (!idSet.add(id)) {
 			// assertion failed
-			log.error("Duplicate id [" + test.getId() + "] found with test " + test.getClass().getName());
+			if (list.containsKey(test.getClass()))
+				log.warn("Test already loaded: " + getClassName(test)  + " [" + id + "]");
+			else
+				log.error(String.format("Duplicate id [%s] found with test %s already defined in %s",
+						id, getClassName(test), getClassName(findTestById(id))));
 			return;
 		}
 		final Class<? extends TestUnit> aClass = test.getClass();
@@ -227,6 +232,19 @@ public final class Loader {
 		// add to hash of test units by class
 		list.put(aClass, test);
 		sortedSet.add(test);
+	}
+
+	private static String getClassName(Object o) {
+		return o == null ? null : o.getClass().getName();
+	}
+
+	private TestUnit findTestById(String id) {
+		if (id != null) {
+			for(TestUnit t : sortedSet) {
+				if (id.equals(t.getId())) return t;
+			}
+		}
+		return null;
 	}
 
 	public Context getContext() {
