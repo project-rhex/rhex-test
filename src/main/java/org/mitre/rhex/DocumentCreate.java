@@ -251,6 +251,10 @@ public class DocumentCreate extends BaseXmlTest {
 		final HttpClient client = context.getHttpClient();
 		try {
 			documentURL = new URI(location);
+			if ("localhost".equals(documentURL.getHost()) || !documentURL.isAbsolute()) {
+				addWarning("Invalid document URL " + documentURL);
+				return;
+			}
 			HttpGet req = new HttpGet(documentURL);
 			req.setHeader("Accept", MIME_APPLICATION_XML);
 			System.out.println("executing request: " + req.getRequestLine());
