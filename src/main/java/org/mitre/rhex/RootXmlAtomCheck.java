@@ -62,7 +62,7 @@ public class RootXmlAtomCheck extends BaseTest {
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
 		List<Class<? extends TestUnit>> depends = new ArrayList<Class<? extends TestUnit>>(2);
 		depends.add(BaseUrlGetTest.class); // 6.2.1.4
-		depends.add(BaseUrlRootXml.class); // 6.3.1
+		depends.add(BaseUrlRootXml.class); // 6.3.1.1
 		return depends;
 	}
 
