@@ -1,6 +1,7 @@
 package org.mitre.rhex;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -187,7 +188,7 @@ public class DocumentCreateCheck extends BaseXmlTest {
 		entity.writeTo(bos);
 		Document doc = getDefaultDocument(context, bos);
 		final Namespace atomNs = Namespace.getNamespace(NAMESPACE_W3_ATOM_2005);
-		String targetUrl = documentURL.toASCIIString();
+		// String targetUrl = documentURL.toASCIIString();
 		for(Object feedChild : doc.getRootElement().getChildren("entry", atomNs)) {
 			if (!(feedChild instanceof Element)) continue;
 			Element entry = (Element)feedChild;
@@ -195,12 +196,24 @@ public class DocumentCreateCheck extends BaseXmlTest {
 				if (!(entryChild instanceof Element)) continue;
 				Element link = (Element)entryChild;
 				String href = link.getAttributeValue("href"); // required
-				if (targetUrl.equals(href)) {
-                    log.debug("Found target href in ATOM feed");
-					return;
-				}
+				if (StringUtils.isNotBlank(href))
+					try {
+						URI uri = new URI(href);
+						if (!uri.isAbsolute()) {
+							uri = documentURL.resolve(uri);
+							log.trace("relative URL {} -> {}", href, uri);
+						}
+						if (documentURL.equals(uri)) {
+							log.debug("Found target href in ATOM feed");
+							return;
+						}
+					} catch (URISyntaxException e) {
+						if (addLogWarning("Bad URL syntax"))
+							log.warn("Bad URL " + href, e);
+					}
 			}
 		}
+		if (log.isDebugEnabled()) System.out.println(bos.toString());
 		throw new TestException("Failed to verify document appears in ATOM feed");
 	}
 
