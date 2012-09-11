@@ -197,7 +197,8 @@ public class HtmlReporter extends AbstractReporter {
     @Override
     public int generateSummary() {
         assert(!inPreBlock);
-        int failed = 0;
+		int failed = 0;
+		try {
         int testsRun = 0;
         int successCount = 0;
         int warningCount = 0 ;
@@ -297,7 +298,7 @@ public class HtmlReporter extends AbstractReporter {
                 warningCount += warnings.size();
                 System.out.println("<p><b>Warnings</b><ul>");
                 for (String s : warnings) {
-                    System.out.println("<li>" + s);
+                    System.out.printf("<li>%s%n", escapeHtml(s));
                 }
                 System.out.println("</ul>");
             }
@@ -325,7 +326,9 @@ public class HtmlReporter extends AbstractReporter {
         System.out.println("</body>");
         System.out.println("</html>");
 
-	    close();
+		} finally {
+	    	close();
+		}
 
         return failed;
     }
