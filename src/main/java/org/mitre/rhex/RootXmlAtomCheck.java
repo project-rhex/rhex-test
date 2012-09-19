@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -121,6 +122,13 @@ public class RootXmlAtomCheck extends BaseTest {
 			return;
 		}
 
+		final Context context = Loader.getInstance().getContext();
+		final URI baseURI = context.getBaseURL(); // e.g. https://hdata.server.com/records/1547
+		String baseUrl = baseURI.toASCIIString();
+		// if (!baseUrl.endsWith("/")) baseUrl += '/'; // e.g. https://hdata.server.com/records/1547/
+		// Note: if there are non-ASCII characters in the baseURL then the URL comparison below might not match
+		log.debug("using baseUrl={}", baseUrl);
+
 		// Map<String,String> sections = new HashMap<String, String>();
 		Set<String> sectionPaths = new HashSet<String>();
 		for(Object child : sectionsElt.getChildren("section", ns)) {
@@ -165,23 +173,38 @@ public class RootXmlAtomCheck extends BaseTest {
 			...
 		 </feed>
 
+		latest returns:
+		 <entry>
+			<id>/allergies</id>
+			<link rel="alternate" type="text/html" href="http://localhost:3000/records/1/allergies"/>
+			<link rel="alternate" type="application/atom+xml" href="http://localhost:3000/records/1/allergies"/>
+			<title>Allergies</title>
+		  </entry>
+
 		 */
 		final Namespace atomNs = Namespace.getNamespace(NAMESPACE_W3_ATOM_2005);
-		final Context context = Loader.getInstance().getContext();
-		final URI baseURI = context.getBaseURL(); // e.g. https://hdata.server.com/records/1547
-		String baseUrl = baseURI.toASCIIString();
-		if (!baseUrl.endsWith("/")) baseUrl += '/'; // e.g. https://hdata.server.com/records/1547/
-		// Note: if there are non-ASCII characters in the baseURL then the URL comparison below might not match
-		log.trace("using baseUrl={}", baseUrl);
 		Set<String> atomSections = new HashSet<String>();
 		// check Atom entries against sections in root.xml
 		for(Object feedChild : atomDoc.getRootElement().getChildren("entry", atomNs)) {
 			if (!(feedChild instanceof Element)) continue;
 			Element entry = (Element)feedChild;
-			/*
 			String id = entry.getChildText("id", atomNs);
-			if (id == null || StringUtils.isBlank("id")) continue;
-			String sectionPath = sections.get(id);
+			if (id == null) continue;
+			if (id.startsWith("/")) id = id.substring(1);
+			if (StringUtils.isBlank("id")) continue;
+			if (sectionPaths.contains(id)) {
+				/*
+				HL7 2.3.2.2:
+
+				<atom:id> - This element contains a name for the document that is unique over the parent Section.
+				For child Sections this name is the path segment for the child Section, as defined in the root.xml document.
+				This element MUST be identical to the DocumentId element in the document metadata (see section 2.6.3).
+				 */
+				atomSections.add(id); // found associated section path in root.xml
+			} else {
+				addLogWarning("id " + id + " in atom entry not found in associated root.xml document");
+			}
+			/*
 			if (sectionPath == null) {
 				addWarning("id " + id + " in atom entry not found in associated root.xml document");
 				continue;
@@ -192,21 +215,40 @@ public class RootXmlAtomCheck extends BaseTest {
 				if (!(entryChild instanceof Element)) continue;
 				Element link = (Element)entryChild;
 				String href = link.getAttributeValue("href"); // required
-				// System.out.println("XXX: link href=" + href);
 				// note: an atom entry may contain multiple link elements that may or may not map to the root.xml section path
 				// ignore links with missing href
 				if (StringUtils.isBlank(href)) continue;
-				if (!href.startsWith(baseUrl)) {
-					log.trace("link href={}", href);
-					continue;
+				// System.out.println("XXX: link href=" + href);
+				try {
+					URI entryUri = new URI(href);
+					if (!entryUri.isAbsolute()) {
+						// REVIEW: is relative URI legal wrt HL7 spec
+						// legal wrt ATOM http://tools.ietf.org/html/rfc4287
+						entryUri = baseURI.resolve(entryUri);
+						log.trace("relative URL {} -> {}", href, entryUri);
+					}
+					if ("localhost".equals(entryUri.getHost())) {
+						if (addWarning("section entry URL cannot be localhost"))
+							log.warn("section entry URL cannot be localhost " + entryUri.toASCIIString());
+					}
+					/*
+					String entryUrl = entryUri.toASCIIString();
+					if (!entryUrl.startsWith(baseUrl)) {
+						//log.trace("link href={}", entryUrl);
+						log.debug("other link href={}", entryUrl);
+						continue;
+					}
+
+					String path = entryUrl.substring(baseUrl.length());
+					// System.out.println("XXX: atom path=" + path);
+					if (sectionPaths.contains(path)) atomSections.add(path); // found associated section path in root.xml
+					else if (debug) log.debug("link href path " + path + " does not match root.xml section path");
+					*/
+				} catch (URISyntaxException e) {
+					if (addLogWarning("Bad entry URL")) log.warn("", e);
 				}
-				// HL7 2.3.2.2: for feedChild sections the atom:id is the path segment for the feedChild Section.
-				String path = href.substring(baseUrl.length());
-				// System.out.println("XXX: atom path=" + path);
-				if (sectionPaths.contains(path)) atomSections.add(path); // found associated section path in root.xml
-				else if (debug) log.debug("link href path " + path + " does not match root.xml section path");
 			}
-		}
+		} // for each atom entry
 
 		if (debug) log.debug("atom section paths=" + atomSections);
 		assertEquals(sectionPaths.size(), atomSections.size());
