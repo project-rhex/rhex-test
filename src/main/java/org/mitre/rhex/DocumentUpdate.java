@@ -103,6 +103,7 @@ public class DocumentUpdate extends BaseXmlTest {
 		try {
 			xmlContent = getContent(baseTest);
 			if (xmlContent == null) {
+				System.out.println("URL=" + baseURL);
 				setStatus(StatusEnumType.SKIPPED, "Failed to fetch/update test document to perform test");
 				return;
 			}
@@ -113,6 +114,10 @@ public class DocumentUpdate extends BaseXmlTest {
 		} catch (JDOMException e) {
 			System.out.println("URL=" + baseURL);
 			throw new TestException(e);
+		}
+
+		if (log.isDebugEnabled()) {
+			System.out.println("URL=" + baseURL);
 		}
 
 		final Context context = Loader.getInstance().getContext();
@@ -210,9 +215,9 @@ public class DocumentUpdate extends BaseXmlTest {
 			if (start != null) {
 				value = start.getAttribute("value");
 				if (value != null) text = value.getValue(); // #2
-				else text = start.getTextTrim(); // #3
+				else text = start.getTextTrim();			// #3
 			} else {
-				text = effectiveTime.getTextTrim(); // #1
+				text = effectiveTime.getTextTrim();			// #1
 			}
 			System.out.println("target effectiveTime=" + text);
 			if (StringUtils.isBlank(text)) {
@@ -220,31 +225,42 @@ public class DocumentUpdate extends BaseXmlTest {
 				return null;
 			}
 
-			//Pattern p = Pattern.compile("(\\d\\d\\d\\d)-"); // 2010-06-27 04:00:00 +0000
-			Pattern p = Pattern.compile("(\\S+) (\\d\\d):"); // 2010-06-27 *04*:00:00 +0000 -- select hour field
-			Matcher m = p.matcher(text);
-			if (!m.lookingAt()) {
-				log.warn("Failed to match target date pattern");
-				return null; // TODO try alternative update strategy if applicable
-			}
-			// System.out.println("match " + m.group(1));
-			// increment the hour field
-			try {
-				targetText = String.format("%s %02d:%s",
-					m.group(1),
-					(Integer.parseInt(m.group(2)) + 1) % 24,
-					text.substring(m.end()));
-			} catch (NumberFormatException nfe) {
-				log.debug("Failed to parse hour field", nfe);
-				return null;
+			if (text.length() == 14 && StringUtils.isNumeric(text)) {
+				// <start value="20100507060000" /></effectiveTime>
+				//               YYYYMMDDHHMMSS
+				int hour = Integer.parseInt(text.substring(8, 10)) + 1 % 24;
+				targetText = String.format("%s%02d%s",
+						text.substring(0,8), hour,
+						text.substring(10));
+				log.debug("effectiveTime text\n\told: {}\n\tnew: {}", text, targetText);
+			} else {
+				//Pattern p = Pattern.compile("(\\d\\d\\d\\d)-"); // 2010-06-27 04:00:00 +0000
+				Pattern p = Pattern.compile("(\\S+) (\\d\\d):"); // 2010-06-27 *04*:00:00 +0000 -- select hour field
+				Matcher m = p.matcher(text);
+				if (!m.lookingAt()) {
+					log.warn("Failed to match target date pattern");
+					// log.debug("effectiveTime text={}", text);
+					return null; // TODO try alternative update strategy if applicable
+				}
+				// System.out.println("match " + m.group(1));
+				// increment the hour field
+				try {
+					targetText = String.format("%s %02d:%s",
+						m.group(1),
+						(Integer.parseInt(m.group(2)) + 1) % 24,
+						text.substring(m.end()));
+				} catch (NumberFormatException nfe) {
+					log.debug("Failed to parse hour field", nfe);
+					return null;
+				}
 			}
 			// increment the year field
-			//targetText = (Integer.parseInt(m.group(1)) + 1) + text.substring(4);
+			// targetText = (Integer.parseInt(m.group(1)) + 1) + text.substring(4);
 			if (start != null) {
-				if (value != null) value.setValue(targetText);
-				else start.setText(targetText);
+				if (value != null) value.setValue(targetText);	// #2
+				else start.setText(targetText);					// #3
 			} else
-				effectiveTime.setText(targetText);
+				effectiveTime.setText(targetText);				// #1
 			// System.out.println("targetText=" + effectiveTime.getText());
 			XMLOutputter xo = new XMLOutputter();
 			xo.setFormat(org.jdom.output.Format.getPrettyFormat());
@@ -276,11 +292,11 @@ public class DocumentUpdate extends BaseXmlTest {
 		String elementValue;
 		if (start != null) {
 			Attribute value = start.getAttribute("value");
-			if (value != null) elementValue = value.getValue();
-			else elementValue = start.getText();
+			if (value != null) elementValue = value.getValue(); // #2
+			else elementValue = start.getText();				// #3
 		} else {
 			// <effectiveTime>2011-06-27 04:00:00 +0000</effectiveTime>
-			elementValue = effectiveTime.getText();
+			elementValue = effectiveTime.getText();				// #1
 		}
         assertEquals(targetText, elementValue);
         return true;
