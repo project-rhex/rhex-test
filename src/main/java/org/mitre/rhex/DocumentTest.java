@@ -1,5 +1,6 @@
 package org.mitre.rhex;
 
+import com.google.gson.*;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -49,8 +50,10 @@ public class DocumentTest extends BaseXmlTest {
 
 	// regexp for mime-type (rfc2046); e.g. application/rss+xml, audio/L2, application/x-pkcs7-signature, etc.
 	private static final Pattern mimePattern = Pattern.compile("[a-z]+/\\S+");
-	
-	// int count;
+
+	private JsonParser parser;
+
+	private int count;
 
 	public DocumentTest() {
 		// forces source test to keep its Document objects after it executes
@@ -151,34 +154,57 @@ public class DocumentTest extends BaseXmlTest {
 
 	private void checkDocument(Context context, String href, String type) throws URISyntaxException, IOException, TestException {
 		URI baseURL = new URI(href);
+		if (!baseURL.isAbsolute()) {
+			// REVIEW: is this legal wrt HL7 spec
+			baseURL = context.getBaseURL().resolve(baseURL);
+			log.trace("relative URL {} -> {}", href, baseURL);
+		}
 		String contentType = getValidType(type);
-		if (debugEnabled && type != null && !type.equals(contentType))
+		if (debugEnabled && type != null && !type.equals(contentType)) {
 			System.out.println("\tcontent type=" + contentType);
+		}
+		if ("localhost".equalsIgnoreCase(baseURL.getHost())) {
+			addLogWarning("URL cannot be localhost");
+			return;
+		}
 		if (contentType == null) {
-			// log.debug("null content type from type={}", type);
-			contentType = "application/xml, text/xml, application/json, text/html, */*";
+			if (log.isDebugEnabled()) {
+				if (type == null) log.debug("null content type");
+				else log.debug("null content type from type=" + type);
+			}
+			contentType = "application/xml,text/xml,application/json,text/html;q=0.9,*/*;q=0.8";
 		} else {
-			/*
-			if (! MIME_APPLICATION_JSON.equals(contentType)) {
-				contentType += ", application/json";
-            }
-            */
-			// contentType += ", */*"; // responds 406 status code
+			// NOTE: implementation with Ruby on Rails does not handle the */* or quality weights on Accept header correctly
+			// so for example: Accept => application/xml,*/*;q=0.8 returns HTML document even when an XML representation exists.
+			// Use multiple formats in accept header for 25% of the documents.
+			// if (contentType.contains("/xml")) return; // skip XML for now
+			if (++count % 4 == 0) {
+				// if add multiple mime types then get HTML output
+				if (MIME_APPLICATION_JSON.equals(contentType))
+					contentType += ",application/xml;q=0.9";
+				else
+					contentType += ",application/json;q=0.9";
+				// else contentType += ",*/*;q=0.8"; // responds 406 status code
+			}
 		}
 
 		HttpClient client = context.getHttpClient();
 		try {
             if (debugEnabled) System.out.println("GET URL=" + baseURL);
+			//System.out.println("GET URL=" + baseURL);
 			HttpGet req = new HttpGet(baseURL);
 			req.setHeader("Accept", contentType);
             if (debugEnabled) System.out.println("Accept=" + contentType);
-			validateContent(baseURL, req, context.executeRequest(client, req), context);
+			validateContent(baseURL, req, context.executeRequest(client, req), context, contentType);
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
 	}
 
-	private void validateContent(URI baseURL, HttpGet req, HttpResponse response, Context context) throws IOException, TestException {
+	private void validateContent(URI baseURL, HttpGet req, HttpResponse response,
+								 Context context, String requestMediaType)
+			throws IOException, TestException
+	{
 		// TODO: what can we test about these document URLs - does any error in document fail overall conformance for the spec requirement
 		int code = response.getStatusLine().getStatusCode();
 		if (debugEnabled) {
@@ -209,7 +235,17 @@ public class DocumentTest extends BaseXmlTest {
 			if (addLogWarning("Failed to determine content type") && debugEnabled) {
 				dumpResponse(req, response, true);
 			}
-		} else if (ClientHelper.isXmlContentType(contentType)) {
+			return;
+		}
+		int ind = requestMediaType.indexOf(',');
+		if (ind > 0) requestMediaType = requestMediaType.substring(0, ind);
+		ind = requestMediaType.indexOf(';'); // strip off any parameter (e.g. ;q=0.9)
+		if (ind > 0) requestMediaType = requestMediaType.substring(0, ind);
+		if (!requestMediaType.equalsIgnoreCase(contentType)) {
+			addLogWarning(String.format("Returned content type: %s does not match requested type: %s",
+					requestMediaType ,contentType));
+		}
+		if (ClientHelper.isXmlContentType(contentType)) {
 			// content-type = application/atom+xml OR text/xml OR application/xml
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			entity.writeTo(bos);
@@ -220,14 +256,29 @@ public class DocumentTest extends BaseXmlTest {
 				log.warn("", e);
 			}
 		} else if (contentType.equals(MIME_APPLICATION_JSON)) {
-			String bodyText = EntityUtils.toString(entity);
-			if (StringUtils.isBlank(bodyText)) {
+			if (len > 1) {
+				try {
+					String json = EntityUtils.toString(entity);
+					if (StringUtils.isBlank(json)) {
+						addLogWarning("Empty json document");
+					} else {
+						// e.g. {"codes":{"SNOMED-CT":["84114007"],"ICD-9-CM":["428.9"],"ICD-10-CM":["I50.9"]},...
+						try {
+							if (parser == null) parser = new JsonParser();
+							parser.parse(json);
+						} catch(JsonSyntaxException e) {
+							log.warn("", e);
+						}
+					}
+				} catch(Exception e) {
+					log.debug("", e);
+				}
+			} else {
+				// 1-byte json documents are bogus
 				addLogWarning("Empty json document");
 			}
-			// e.g. {"codes":{"SNOMED-CT":["84114007"],"ICD-9-CM":["428.9"],"ICD-10-CM":["I50.9"]},"...
-			// TODO: validate JSON
 		} // else System.out.println("XXX: other type="+ contentType);
-        // if not XML/JSON then do nothing for now
+		// if not XML/JSON then do nothing for now
 	}
 
 	private static String getValidType(String type) {
