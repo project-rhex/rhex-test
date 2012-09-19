@@ -62,6 +62,13 @@ public class DocumentPutBadContent extends DocumentUpdate {
 		return "If the PUT parameter is incorrect or the content cannot be validated, server MUST return a 400";
 	}
 
+	/*
+	@NonNull
+	public List<Class<? extends TestUnit>> getDependencyClasses() {
+		return Collections.<Class<? extends TestUnit>> singletonList(DocumentPutPreTest.class); // 6.5.2.0
+	}
+	 */
+
 	protected String getContent(DocumentPutPreTest baseTest)
 			throws IOException, JDOMException
 	{
@@ -114,7 +121,7 @@ public class DocumentPutBadContent extends DocumentUpdate {
 				// compare against original XML document
 				Document baseDoc = baseTest.getDocument();
 				if (baseDoc == null) {
-					log.debug("Cannot verify update");
+					addLogWarning("Cannot verify update");
 					return; // cannot compare
 				}
 				Element baseRootElement = doc.getRootElement();
