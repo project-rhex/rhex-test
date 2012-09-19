@@ -83,15 +83,19 @@ public class SectionNotFound extends BaseXmlTest {
 		final Context context = Loader.getInstance().getContext();
 		HttpClient client = context.getHttpClient();
 		try {
-			URI  baseURL = context.getBaseURL("notfound");
+			URI baseURL = context.getBaseURL("notfound");
+			// TODO: assumes section notfound does not exist
 			HttpGet req = new HttpGet(baseURL);
 			if (log.isDebugEnabled()) {
-				System.out.println("\nGET URL: " + req.getURI());
+				System.out.println("GET URL: " + baseURL);
 			}
-			req.setHeader("Accept", "application/atom+xml, application/xml");
+			req.setHeader("Accept", "application/atom+xml");
 			HttpResponse response = context.executeRequest(client, req);
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 404 || log.isDebugEnabled()) {
+				if (!log.isDebugEnabled()) {
+					System.out.println("GET URL: " + baseURL);
+				}
 				dumpResponse(req, response);
 			}
 			assertEquals(404, code);

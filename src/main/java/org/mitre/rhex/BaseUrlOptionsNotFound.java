@@ -63,7 +63,7 @@ public class BaseUrlOptionsNotFound extends BaseTest {
 			return;
 		}
 		if (log.isDebugEnabled()) {
-			System.out.println("\nOPTIONS URL: " + baseURL);
+			System.out.println("OPTIONS URL: " + baseURL);
 		}
 		HttpClient client = context.getHttpClient();
 		try {
@@ -73,6 +73,7 @@ public class BaseUrlOptionsNotFound extends BaseTest {
             boolean dumpBody = false;
             if (code != 404) {
 				if (log.isDebugEnabled()) dumpBody = true;
+				else System.out.println("OPTIONS URL: " + baseURL);
 				setStatus(StatusEnumType.FAILED, "Expected 404 HTTP status code but was: " + code);
 			} else {
 				setStatus(StatusEnumType.SUCCESS);

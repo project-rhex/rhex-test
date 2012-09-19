@@ -123,7 +123,8 @@ public class CreateDuplicateSection extends BaseXmlTest {
 					extensionId = id;
 					sectionPath = section;
 					name = ext.getText();
-					break;
+					// prefer non-c32 section if available which may have special handling
+					if (!section.contains("/c32")) break;
 				}
 			}
 		}
@@ -140,6 +141,7 @@ public class CreateDuplicateSection extends BaseXmlTest {
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + baseUrl);
 				System.out.println("section path=" + sectionPath);
+				System.out.println("extensionID=" + extensionId);
 			}
 			HttpPost post = new HttpPost(baseUrl);
 			List<NameValuePair> formParams = new ArrayList<NameValuePair>(3);
@@ -151,16 +153,18 @@ public class CreateDuplicateSection extends BaseXmlTest {
 			post.setEntity(new UrlEncodedFormEntity(formParams));
 			HttpResponse response = context.executeRequest(client, post);
 			int code = response.getStatusLine().getStatusCode();
-			if (log.isDebugEnabled()) {
-				System.out.println("POST Response status=" + code);
-				for (Header header : response.getAllHeaders()) {
-					System.out.println("\t" + header.getName() + ": " + header.getValue());
-				}
-			}
 			if (code != 409) {
 				dumpResponse(post, response, log.isDebugEnabled());
 				setStatus(StatusEnumType.FAILED, "Expected 409 HTTP status code but was: " + code);
+				if (!log.isDebugEnabled()) {
+					System.out.println("\nURL: " + baseUrl);
+					System.out.println("section path=" + sectionPath);
+					System.out.println("extensionID=" + extensionId);
+				}
 			} else {
+				if (log.isDebugEnabled()) {
+					dumpResponse(post, response);
+				}
 				setStatus(StatusEnumType.SUCCESS);
 			}
 		} catch (IOException e) {

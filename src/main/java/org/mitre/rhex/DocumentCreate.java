@@ -146,6 +146,7 @@ public class DocumentCreate extends BaseXmlTest {
 			final URI baseUrl = context.getBaseURL(sectionPath);
 			if (log.isDebugEnabled()) {
 				System.out.println("\nURL: " + baseUrl);
+				System.out.println("file: " + fileToUpload);
 			}
 			FileEntity reqEntity = new FileEntity(fileToUpload, ContentType.APPLICATION_XML);
 			/*
