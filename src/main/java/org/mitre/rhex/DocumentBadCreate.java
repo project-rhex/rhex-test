@@ -79,7 +79,7 @@ public class DocumentBadCreate extends DocumentCreate {
 		try {
 			URI baseUrl = context.getBaseURL(sectionPath);
 			if (log.isDebugEnabled()) {
-				System.out.println("\nURL: " + baseUrl);
+				System.out.println("URL: " + baseUrl);
 			}
 			/*
 			MultipartEntity reqEntity = new MultipartEntity();
@@ -103,7 +103,14 @@ public class DocumentBadCreate extends DocumentCreate {
 
 			if (code == 400) {
 				setStatus(StatusEnumType.SUCCESS);
+			} else if (code == 406) {
+				setStatus(StatusEnumType.SUCCESS);
+				addLogWarning("Expected code is 400 but 406 is allowed");
 			} else {
+				if (!log.isDebugEnabled()) {
+					System.out.println("URL: " + baseUrl);
+					dumpResponse(post, response);
+				}
 				setStatus(StatusEnumType.FAILED, "Expected 400 HTTP status code but was: " + code);
 			}
 
