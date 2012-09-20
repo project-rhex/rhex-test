@@ -191,6 +191,18 @@ public class Context {
 		return getString(user + "." + property);
 	}
 
+	/**
+	 * Get user property which is stored as username . property name in configuration.
+	 * @param user  The username alias, never null
+	 * @param property The configuration key, never null
+	 * @param defaultValue The default value if property not found
+	 * @return The associated string value if key is found otherwise defaultValue as provided
+	 */
+	public String getUserProperty(String user, String property, String defaultValue) {
+		String value = getUserProperty(user, property);
+		return value == null ? defaultValue : value;
+	}
+
 	public void setProperty(String key, String value) {
         if (config != null) {
             System.out.printf("XXX: set prop %s %s%n", key, value);//debug
