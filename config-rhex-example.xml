@@ -3,7 +3,7 @@
    
   <baseURL>http://rhex.mitre.org:3000/records/2</baseURL>
   
-  <HttpRequestChecker>org.mitre.hdata.test.RhexHttpSecurityChecker</HttpRequestChecker>  
+  <HttpRequestChecker>org.mitre.rhex.security.RhexHttpSecurityChecker</HttpRequestChecker>
   <loginURL>http://rhex.mitre.org:3000/auth/developer/callback</loginURL>
   <loginEmail>user@mitre.org</loginEmail>
   <loginPassword>password</loginPassword>
