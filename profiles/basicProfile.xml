@@ -5,12 +5,25 @@
     This document contains the test assertions for the 
     Basic Profile definition. These test assertions are 
     used by the testing tool to determine if server implementing
-	the hData interface is conformant to the Basic Profile.
+	the RHEx interface is conformant to the Basic Profile.
   </description>
-  
-  <testAssertion class="org.mitre.rhex.BaseUrlGetTest"	 	id="6.2.1.4" />
+    
   <testAssertion class="org.mitre.rhex.BaseUrlOptions"	 	id="6.2.5.1" />
   <testAssertion class="org.mitre.rhex.BaseUrlRootXml"	 	id="6.3.1.1" />
   <testAssertion class="org.mitre.rhex.BaseSectionFromRootXml" id="6.4.1.1" prereq="6.3.1.1" />
-   
+  
+  <testAssertion class="org.mitre.rhex.DocumentGet"			id="6.5.1.0" />
+  
+  <testAssertion class="org.mitre.rhex.RootXmlAtomCheck"	id="6.2.1.6" prereq="6.2.1.4, 6.3.1.1" />
+  <testAssertion class="org.mitre.rhex.SectionNotFound"		id="6.4.1.2" />
+  <testAssertion class="org.mitre.rhex.BaseUrlRootXmlNotFound"	id="6.3.1.2" />
+  
+  <testAssertion class="org.mitre.rhex.BaseUrlGetNoAcceptTest" id="6.2.1.2" />
+  <testAssertion class="org.mitre.rhex.BaseUrlGetStarAcceptTest" id="6.2.1.3" />
+  <testAssertion class="org.mitre.rhex.BaseUrlGetTest" 		id="6.2.1.4" />
+  <testAssertion class="org.mitre.rhex.BaseUrlGetHtmlAcceptTest" id="6.2.1.5" />
+  
+  <testAssertion class="org.mitre.rhex.LastModifiedHeader" 	id="6.1.2.1" />
+  <testAssertion class="org.mitre.rhex.DocumentGzipFetch" 	id="6.1.2.4" />  
+  
 </assertionProfile>
