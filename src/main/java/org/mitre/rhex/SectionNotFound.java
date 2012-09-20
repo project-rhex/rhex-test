@@ -52,7 +52,7 @@ public class SectionNotFound extends BaseXmlTest {
 
 	@NonNull
 	public String getName() {
-		return "If baseURL does not exist or invalid sectionpath is specified then return 404";
+		return "If baseURL does not exist or invalid sectionpath is specified then return 404 on GET operation";
 	}
 
 	@NonNull
