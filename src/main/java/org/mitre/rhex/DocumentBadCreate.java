@@ -70,7 +70,7 @@ public class DocumentBadCreate extends DocumentCreate {
 
 	@NonNull
 	public List<Class<? extends TestUnit>> getDependencyClasses() {
-		return Collections.<Class<? extends TestUnit>> singletonList(BaseUrlRootXml.class); // 6.3.1.1
+		return Collections.<Class<? extends TestUnit>> singletonList(BaseSectionFromRootXml.class); // 6.4.1.1
 	}
  	*/
 
@@ -89,9 +89,7 @@ public class DocumentBadCreate extends DocumentCreate {
 			*/
 			//List<NameValuePair> formParams = new ArrayList<NameValuePair>(1);
 			//formParams.add(new BasicNameValuePair("content", "this is not XML"));
-			HttpPost post = new HttpPost(baseUrl);
-			StringEntity entity = new StringEntity("plain text", ContentType.TEXT_PLAIN);
-			post.setEntity(entity);
+			HttpPost post = getRequest(baseUrl);
 			//post.setEntity(new UrlEncodedFormEntity(formParams));
 			System.out.println("executing request " + post.getRequestLine());
 			HttpResponse response = context.executeRequest(client, post);
@@ -122,5 +120,13 @@ public class DocumentBadCreate extends DocumentCreate {
 			client.getConnectionManager().shutdown();
 		}
 	}
+
+	protected HttpPost getRequest(URI baseUrl) {
+		HttpPost post = new HttpPost(baseUrl);
+		StringEntity entity = new StringEntity("plain text", ContentType.TEXT_PLAIN);
+		post.setEntity(entity);
+		return post;
+	}
+
 
 }
