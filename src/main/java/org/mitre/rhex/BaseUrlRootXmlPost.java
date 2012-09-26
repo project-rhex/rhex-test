@@ -134,15 +134,15 @@ public class BaseUrlRootXmlPost extends BaseXmlTest {
 			int code = response.getStatusLine().getStatusCode();
 			if (code != 405 || log.isDebugEnabled()) {
 				if (!log.isDebugEnabled()) System.out.println("URL: " + baseURL);
-				dumpResponse(httppost, response, code == 200);
+				dumpResponse(httppost, response, true);
 			}
 			assertEquals(405, code);
+			setStatus(StatusEnumType.SUCCESS);
 		} catch (IOException e) {
 			throw new TestException(e);
 		} catch (URISyntaxException e) {
 			throw new TestException(e);
 		} finally {
-			// REVIEW: if HttpClient not shared with other tests
 			client.getConnectionManager().shutdown();
 		}
 	}
