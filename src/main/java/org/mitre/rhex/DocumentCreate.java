@@ -3,12 +3,14 @@ package org.mitre.rhex;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.util.EntityUtils;
 import org.mitre.test.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,10 +220,10 @@ public class DocumentCreate extends BaseXmlTest {
 		}
 	}
 
-	private void validateResponse(Context context, HttpResponse response)
+	private void validateResponse(Context context, HttpResponse postResponse)
 			throws TestException, URISyntaxException, IOException
 	{
-		Header header = response.getFirstHeader("Location");
+		Header header = postResponse.getFirstHeader("Location");
 		if (header == null) {
 			fail("Expected Location header in response");
 			return;
@@ -239,7 +241,7 @@ public class DocumentCreate extends BaseXmlTest {
             String oldvalue = location;
 			location = context.getBaseURL(sectionPath + location.substring(ind)).toASCIIString();
 			// log.debug("XXX: Location {}", location);
-			response.setHeader(header.getName(), location);
+			postResponse.setHeader(header.getName(), location);
             if (!oldvalue.equals(location)) {
                 log.warn("required to rewrite invalid location");
                 log.debug("XXX: rewrite bogus Location {} -> {}", oldvalue, location);
@@ -256,6 +258,7 @@ public class DocumentCreate extends BaseXmlTest {
 				addWarning("Invalid document URL " + documentURL);
 				return;
 			}
+			// verifies can get the created document
 			HttpGet req = new HttpGet(documentURL);
 			req.setHeader("Accept", MIME_APPLICATION_XML);
 			System.out.println("executing request: " + req.getRequestLine());
@@ -263,12 +266,44 @@ public class DocumentCreate extends BaseXmlTest {
 			int code = getResponse.getStatusLine().getStatusCode();
 			if (code != 200 || log.isDebugEnabled()) {
 				System.out.println("----------------------------------------");
-                dumpResponse(req, getResponse, true);
+                dumpResponse(req, getResponse, false);
 			}
 			//assertEquals(200, code);
 			if (code != 200) {
 				addWarning("Expected 200 HTTP status code but was: " + code);
             }
+
+			String content = context.getString("updateDocument.content");
+			HttpEntity entity = getResponse.getEntity();
+			if (entity == null) {
+				if (content != null) addLogWarning("Failed to verify content: no entity");
+				else addLogWarning("Unable to parse body content");
+				return;
+			}
+			// verifies actual document contents matches
+			try {
+				String bodyText = EntityUtils.toString(entity);
+				boolean dump = log.isDebugEnabled();
+				if (content != null) {
+					if (bodyText != null && bodyText.contains(content)) {
+						log.debug("created document contains target: {}", content);
+					} else {
+						addWarning("Created document does not match target content");
+						log.warn("Created document does not match target content: {}", content);
+						dump = true;
+					}
+				}
+				if (dump) {
+					System.out.println("----------------------------------------");
+					if (bodyText != null && bodyText.length() > 68)
+						System.out.println("Response body:");
+					else
+						System.out.print("Response body: ");
+					System.out.println(bodyText);
+				}
+			} catch(Exception e) {
+				log.warn("Failed to parse body content", e);
+			}
 		} finally {
 			client.getConnectionManager().shutdown();
 		}
